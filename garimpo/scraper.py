@@ -442,7 +442,7 @@ def links_from(html, base, pattern):
     soup = BeautifulSoup(html, "lxml")
     out = []
     for a in soup.find_all("a", href=True):
-        u = urljoin(base, a["href"]).split("#")[0]
+        u = urljoin(base, a["href"]).split("#")[0].split("?")[0]
         if urlparse(u).hostname and urlparse(u).hostname.removeprefix("www.") == urlparse(base).hostname.removeprefix(
                 "www.") and re.search(pattern, u) and not NON_PRODUCT_EXT.search(u):
             out.append(u)
