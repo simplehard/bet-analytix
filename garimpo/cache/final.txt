@@ -1,0 +1,17 @@
+candidatas cor: 16 | azul/preto: 35 | descartadas: 13
+Counter({'sem bootcut': 96, 'sem calças': 30, 'fora do ar': 30, 'varrida': 23, 'só Instagram': 20, 'ignorada (grande varejo / não vende calça)': 15, 'bloqueada': 6, 'duplicada': 1})
+- Singa | Calça Jeans Bootcut Off-White | bege/cru | R$649.0 |  faltam medidas | disp: 36S, 36L, 38S, 42S, 46S, 46L, 48S | https://us.singapurastore.com/products/calca-jeans-bootcut-off-white
+- mondepars | Bootcut Jeans Mondepars | marrom | R$940.0 |  faltam medidas | disp: 32, 38, 48, 50 | https://www.mondepars.com/products/bootcut-jeans-marrom
+- Dust | Calça Flare Jeans 70’s Dusty Brown | marrom | R$379.62 |  faltam medidas | disp: em estoque (tamanhos não listados) | https://www.thedustcompany.com.br/produto/calca-jeans-70s-brown-wash/
+- Dust | Calça Flare Jeans 70’s ⁠Blanc Gray | cinza | R$379.62 |  faltam medidas | disp: em estoque (tamanhos não listados) | https://www.thedustcompany.com.br/produto/calca-jeans-70s-blanc-gray/
+- amnidevt | BOOTCULT 0226-05 — CINZA | cinza | R$429.0 |  faltam medidas | disp: 36, 38, 40, 42, 44, 46, 48 (em estoque) | https://amnidevt.com/produto/bootcult-0226-05-cinza/
+- Kardigan Studios | Paris Bootcut | não identificada | R$409.99 |  tabela em imagem — conferir manualmente | disp: 38, 40, 42, 44, 46 | https://www.kardiganstudios.net/produtos/paris-bootcut-1osuh/
+- Egho Studios | WORK FLARE DENIM x WSG | não identificada | R$609.0 |  faltam medidas | disp: 36, 38, 40, 42, 44, 46, 48 | https://eghostudios.com/products/calca-jeans-flare
+- Kardigan Studios | Gloss Denim | não identificada | R$409.99 |  faltam medidas | disp: 46 | https://www.kardiganstudios.net/produtos/gloss-denim-qexwe/
+- Dust | Calça Flare Jeans 70’s Dusty Wash | não identificada | R$379.62 |  faltam medidas | disp: em estoque (tamanhos não listados) | https://www.thedustcompany.com.br/produto/calca-jeans-70s-dusty-wash/
+- studiosecta | secta straight switch flare | não identificada | R$649 |  faltam medidas | disp: em estoque (tamanhos não listados) | https://studiosecta.com.br/produtos/secta-straight-switch-flare-leedo/
+- Recurva | GRAVECUT Flares — Red | vermelho/vinho | R$479.9 | P quadril mais solto; barra mais aberta | disp:  | https://recurva.com.br/produtos/gravecutflares-red/
+- Quadro Creations | COTTON KANVAS DISTRESSED BOOTCUT PANTS OFF WHITE | bege/cru | R$1235.0 |  faltam medidas | disp:  | https://www.quadrocreations.com/products/cotton-kanvas-straigth-pants-off-white
+- 2variant | LEVI’s FLARE | não identificada | R$400 | (único) faltam medidas | disp:  | https://twovariant.com/produtos/levis-flare/
+- Cursed | WAX DISTRESSED FLARE | não identificada | R$430 | M barra mais aberta | disp:  | https://cursed.com.br/produtos/wax-distressed-flare/
+- 2variant | DESTROYED FLARE | não identificada | R$400 | (único) cintura menor; medidas parciais | disp:  | https://twovariant.com/produtos/destroyed-flare/

@@ -26,12 +26,12 @@ EXCL = [
     ("baggy", r"\bbaggy\b"), ("wide", r"\bwide\b|\bwideleg\b|\bwide-leg\b"), ("barrel", r"\bbarrel\b"),
     ("balloon", r"\bballoon\b|\bbalao\b"), ("curve", r"\bcurved?\b|\bcurvada\b"), ("oversized", r"\boversized?\b"),
     ("pantalona", r"\bpantalona\b"), ("jogger", r"\bjogger\b"), ("cargo", r"\bcargo\b"),
-    ("feminina", r"\bfeminin[ao]\b"), ("legging", r"\blegging\b"),
+    ("feminina", r"\bfeminin[ao]\b|\bdama\b|\bwomen'?s?\b"), ("legging", r"\blegging\b"),
 ]
 PANTS = re.compile(r"\bcalcas?\b|\bpants?\b|\bjeans?\b|\btrousers?\b|\bdenim\b|\bbootcut\b|\bflared?\b|\bbootleg\b")
 NOT_PANTS = re.compile(r"\b(camiseta|camisa|t-?shirt|tee|shorts?|bermuda|jort|saia|skirt|vestido|jaqueta|jacket|moletom|"
                        r"hoodie|blazer|bone|cap|meia|tenis|bota|boot\b(?!\s?-?cut)|sapato|clog|sandalia|colete|top|"
-                       r"bolsa|cinto|kit|regata|cropped|macacao|jardineira|footwear|gift)\b")
+                       r"bolsa|cinto|kit|regata|jersey|cropped|macacao|jardineira|footwear|gift)\b")
 
 # ---------------------------------------------------------------- cores
 COLORS = [  # (regex sem acento, rótulo, grupo)
@@ -322,6 +322,9 @@ def analyze_product(p, brand):
     is_pants = bool(PANTS.search(head) or re.search(r"\bcalcas?\b|\bpants\b", unacc(desc[:300])))
     if not KEEP.search(full):
         return None, is_pants
+    kws = set(m.group(0).strip() for m in KEEP.finditer(full))
+    if kws <= {"bootleg"} and not re.search(r"\bcalcas?\b|\bpants?\b|\bjeans?\b|\bdenim\b|\btrousers?\b", unacc(title)):
+        return None, is_pants  # "bootleg" de camisa/produto não oficial
     if not is_pants:
         return None, False
     rec = {"marca": brand, "nome": title, "url": p.get("url"), "imagem": p.get("image")}
@@ -335,7 +338,10 @@ def analyze_product(p, brand):
         if name == "wide" and re.search(r"boot\s?-?cut\s+wide|wide\s+boot\s?-?cut", full):
             alert = "possivelmente larga"
             continue
-        if name == "feminina" and re.search(r"unissex|unisex|masculin|\bmen\b", full):
+        # "feminina" na descrição/tags não descarta peça também marcada como masculina/unissex;
+        # no título do produto, descarta sempre
+        if name == "feminina" and not re.search(rx, unacc(title)) and \
+                re.search(r"unissex|unisex|masculin|\bmen\b", full):
             continue
         reasons.append(f"{name} ({where})")
     rec["alerta"] = alert
@@ -350,6 +356,10 @@ def analyze_product(p, brand):
         rec["tam_disponiveis"] = ", ".join(dict.fromkeys(unknown)) + (" (estoque n/d)" if p.get("in_stock") is None
                                                                      else (" (em estoque)" if p.get("in_stock")
                                                                            else " (esgotado)"))
+    if avail and not any(avail):
+        rec["tam_disponiveis"] = "em estoque (tamanhos não listados)"
+    if sold and not any(sold) and not avail:
+        rec["tam_esgotados"] = "esgotado"
     rec["n_disp"] = len(set(avail)) if avail else (1 if p.get("in_stock") else 0)
     # cor: título > variantes > descrição
     var_txt = " ".join(" ".join(map(str, v.get("options") or [])) for v in vs)
