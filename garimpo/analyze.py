@@ -21,7 +21,7 @@ def unacc(s):
     return "".join(c for c in unicodedata.normalize("NFD", s or "") if unicodedata.category(c) != "Mn").lower()
 
 
-KEEP = re.compile(r"\bboot\s?-?cut\b|\bbootcut\b|\bflare[ds]?\b|\bbootleg\b|\bslim flare\b")
+KEEP = re.compile(r"\bboot\s?-?cult?\b|\bbootcut\b|\bflare[ds]?\b|\bbootleg\b|\bslim flare\b")
 EXCL = [
     ("baggy", r"\bbaggy\b"), ("wide", r"\bwide\b|\bwideleg\b|\bwide-leg\b"), ("barrel", r"\bbarrel\b"),
     ("balloon", r"\bballoon\b|\bbalao\b"), ("curve", r"\bcurved?\b|\bcurvada\b"), ("oversized", r"\boversized?\b"),
@@ -29,7 +29,7 @@ EXCL = [
     ("feminina", r"\bfeminin[ao]\b"), ("legging", r"\blegging\b"),
 ]
 PANTS = re.compile(r"\bcalcas?\b|\bpants?\b|\bjeans?\b|\btrousers?\b|\bdenim\b|\bbootcut\b|\bflared?\b|\bbootleg\b")
-NOT_PANTS = re.compile(r"\b(camiseta|camisa|t-?shirt|tee|shorts?|bermuda|jort|saia|vestido|jaqueta|jacket|moletom|"
+NOT_PANTS = re.compile(r"\b(camiseta|camisa|t-?shirt|tee|shorts?|bermuda|jort|saia|skirt|vestido|jaqueta|jacket|moletom|"
                        r"hoodie|blazer|bone|cap|meia|tenis|bota|boot\b(?!\s?-?cut)|sapato|clog|sandalia|colete|top|"
                        r"bolsa|cinto|kit|regata|cropped|macacao|jardineira|footwear|gift)\b")
 
@@ -335,7 +335,7 @@ def analyze_product(p, brand):
         if name == "wide" and re.search(r"boot\s?-?cut\s+wide|wide\s+boot\s?-?cut", full):
             alert = "possivelmente larga"
             continue
-        if name == "feminina" and where == "descrição" and re.search(r"unissex|unisex|masculin", full):
+        if name == "feminina" and re.search(r"unissex|unisex|masculin|\bmen\b", full):
             continue
         reasons.append(f"{name} ({where})")
     rec["alerta"] = alert
@@ -357,6 +357,9 @@ def analyze_product(p, brand):
     src = "título"
     if not cs:
         cs, src = colors_in(var_txt), "variante"
+    if not cs:
+        slug = (p.get("url") or "").rstrip("/").rsplit("/", 1)[-1].replace("-", " ")
+        cs, src = colors_in(slug), "URL"
     if not cs:
         cs, src = colors_in(desc[:600], first_only=True), "descrição"
     labels = list(dict.fromkeys(c[0] for c in cs))
@@ -460,6 +463,7 @@ def rank_key(r):
 def main(out="resultado.xlsx"):
     brands = json.load(open(os.path.join(CACHE, "brands.json")))
     cands, disc, marcas = [], [], []
+    final_hosts = {}
     for b in brands:
         row = {"marca": b["name"], "instagram": b["instagram"], "loja": b["shop_url"] or "", "regiao": b["region"],
                "fonte": b["source"], "plataforma": "", "produtos": 0, "calcas": 0, "bootcut": 0, "obs": ""}
@@ -473,6 +477,14 @@ def main(out="resultado.xlsx"):
             marcas.append(row)
             continue
         s = json.load(open(path))
+        fh = (re.sub(r"^https?://(www\.)?", "", s.get("final_url") or "").split("/")[0])
+        if fh and fh in final_hosts and s["status"] == "ok":
+            row["status"] = "duplicada"
+            row["obs"] = f"mesma loja que {final_hosts[fh]} ({fh})"
+            marcas.append(row)
+            continue
+        if fh:
+            final_hosts[fh] = b["name"]
         row["plataforma"] = s.get("platform") or ""
         row["produtos"] = len(s["products"])
         if s["status"] != "ok":
@@ -484,9 +496,11 @@ def main(out="resultado.xlsx"):
         seen = set()
         for p in s["products"]:
             key = (p.get("url") or p.get("title") or "").rstrip("/")
-            if re.search(r"^https?://[^/]+/[a-z]{2}/products?/", p.get("url") or ""):
+            if re.search(r"^https?://[^/]+/[a-z]{2}/", p.get("url") or "") and "/products/" not in (p.get("url") or "")[:12] \
+                    and s.get("platform") == "nuvemshop":
                 continue  # cópia em outro idioma/moeda (Nuvemshop internacional)
-            k2 = (unacc(p.get("title") or ""), p.get("price"))
+            k2 = (re.sub(r"\W*\(?copia\)?\s*$", "", unacc(p.get("title") or "")).strip(), p.get("price"),
+                  re.sub(r"[-_]?[a-z0-9]{0,1}\d*$", "", (p.get("url") or "").rstrip("/").rsplit("/", 1)[-1]))
             if key in seen or k2 in seen:
                 continue
             seen.add(key)

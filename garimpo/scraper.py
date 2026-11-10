@@ -107,9 +107,11 @@ class Http:
             raise Offline(type(e).__name__)
         finally:
             self.nreq += 1
-        if r.status_code in (401, 403, 429) or (r.status_code == 503 and "cloudflare" in r.text.lower()):
-            if "challenge" in r.text.lower() or "cf-" in r.text.lower() or r.status_code in (403, 429):
-                raise Blocked(f"HTTP {r.status_code}")
+        if r.status_code in (401, 403, 429):
+            self.n403 = getattr(self, "n403", 0) + 1
+            if self.n403 >= 8:  # muitas recusas seguidas: a loja está bloqueando
+                raise Blocked(f"HTTP {r.status_code} repetido")
+            return None
         if r.status_code >= 500:
             raise Offline(f"HTTP {r.status_code}")
         if r.status_code == 404 and allow_404:
@@ -706,6 +708,8 @@ def scrape_store(brand, force=False):
                 res["platform"] = "genérico (JS — vazio)"
         res["products"] = prods
         res["status"] = "ok"
+        if not prods and getattr(h, "n403", 0) >= 3:
+            res["status"], res["error"] = "bloqueada", f"HTTP 403 em {h.n403} requisições"
     except Blocked as e:
         res["status"], res["error"] = "bloqueada", str(e)
     except Offline as e:
