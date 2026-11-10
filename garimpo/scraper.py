@@ -510,7 +510,7 @@ def try_nuvemshop(h, domain, home_html):
         return None
     pat = r"/(produtos|productos|products)/[^/?#]+/?$"
     urls = sitemap_urls(h, [h.base + "/sitemap.xml"])
-    prod_urls = [u for u in urls if re.search(pat, u) and not re.search(r"/(us|en|es)/products/", u)]
+    prod_urls = [u for u in urls if re.search(pat, u) and not re.search(r"^https?://[^/]+/[a-z]{2}/", u)]
     picked = [u for u in prod_urls if PANTS_SLUG.search(u.rstrip("/").rsplit("/", 1)[-1])]
     for c in category_pages(h, home_html, h.base):
         picked.extend(crawl_listing(h, c, pat))

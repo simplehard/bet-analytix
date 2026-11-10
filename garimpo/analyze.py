@@ -35,13 +35,14 @@ NOT_PANTS = re.compile(r"\b(camiseta|camisa|t-?shirt|tee|shorts?|bermuda|jort|sa
 
 # ---------------------------------------------------------------- cores
 COLORS = [  # (regex sem acento, rótulo, grupo)
-    (r"azul|blue|indigo|navy|marinho|denim blue|light wash|dark wash|medium wash|stone ?wash|delave|anil|celeste", "azul", "azul/preto"),
+    (r"azul|blue|indigo|navy|marinho|denim blue|light wash|dark wash|medium wash|stone\b|stonewash|delave|anil|celeste|raw denim|"
+     r"denim cru|washed denim|jeans claro|jeans escuro|lavagem clara|lavagem media|lavagem escura|amaciad", "azul", "azul/preto"),
     (r"preto|preta|black|blackout|negro|onix|onyx|carvao|charcoal|grafite|graphite|ink\b", "preto", "azul/preto"),
     (r"marrom|brown|cafe\b|coffee|chocolate|tabaco|tobacco|castanho|caramelo|caramel|cognac|conhaque|mocha|"
      r"terra\b|camel|havana|choco\b|cacau|cocoa", "marrom", "outra"),
     (r"ferrugem|rust|cobre|copper|terracota|telha|laranja|orange", "ferrugem/laranja", "outra"),
     (r"bege|beige|areia|sand|cru\b|crua\b|off[ -]?white|ecru|ecrue|creme|cream|bone\b|osso|natural|khaki|caqui|"
-     r"marfim|ivory|nude|kraft|palha|aveia|oat|camurca", "bege/cru", "outra"),
+     r"marfim|ivory|nude|kraft|palha|aveia|oat|camurca|offwhite", "bege/cru", "outra"),
     (r"oliva|olive|musgo|moss|verde|green|militar|army|khaki green|sage|salvia|menta|mint|lima|lime", "verde", "outra"),
     (r"vinho|bordo|burgundy|wine|marsala|cereja|cherry|vermelh|red\b|rubi|carmim|sangue|blood", "vermelho/vinho", "outra"),
     (r"roxo|purple|lilas|lavanda|violeta|uva|ameixa|plum|berinjela", "roxo", "outra"),
@@ -54,13 +55,20 @@ COLORS = [  # (regex sem acento, rótulo, grupo)
 ]
 
 
-def colors_in(text):
+def colors_in(text, first_only=False):
     t = unacc(text)
+    t = re.sub(r"off[ -]?white", "offwhite ecru", t)
+    # cor de etiqueta/tag/linha/botão não é cor da calça
+    t = re.sub(r"(etiquet|tag\b|backtab|patch|linha|costura|pesponto|botao|botoes|rebite|couro|bordad|zipe)[^.;\n]{0,60}", " ", t)
     found = []
     for rx, label, grp in COLORS:
-        if re.search(r"(?<![a-z])(" + rx + ")", t):
-            found.append((label, grp))
-    return found
+        m = re.search(r"(?<![a-z])(" + rx + ")", t)
+        if m:
+            found.append((m.start(), label, grp))
+    found.sort()
+    if first_only and found:
+        found = found[:1]
+    return [(l, g) for _, l, g in found]
 
 
 # ---------------------------------------------------------------- tecido
@@ -172,9 +180,37 @@ SZ_IN_TEXT = re.compile(r"(?:(?<=\s)|^|(?<=[(\[|/]))(?:[Tt][Aa][Mm](?:[Aa][Nn][H
                         r"comprimento|barra|boca|cos|waist))", re.I)
 
 
+HDR_WORD = r"(?:cintura|quadril|comprimento(?: total| lateral| externo)?|barra|boca|gancho(?: frontal| traseiro)?|" \
+           r"coxa|joelho|entre ?pernas?|cos|waist|hip|length|inseam|rise|thigh|hem|leg opening)"
+
+
+def parse_header_rows(text):
+    """'Tam. Cintura Quadril Comprimento Barra P 41 56 108 28 M 43 57,5 109 29' -> tabela."""
+    t = unacc(text)
+    best = {}
+    for hm in re.finditer(r"((?:" + HDR_WORD + r")(?:\s*\(?cm\)?)?(?:\s*[|/,;:\-]?\s*(?:" + HDR_WORD +
+                          r")(?:\s*\(?cm\)?)?){1,7})", t):
+        keys = [meas_key(w) for w in re.findall(HDR_WORD, hm.group(1))]
+        n = len(keys)
+        rest = t[hm.end():hm.end() + 600]
+        rx = re.compile(r"(?:^|\s|\|)(" + SIZE_TOK.lower() + r")\s*[:|\-]?" +
+                        r"".join(r"\s*[|/;]?\s*(\d{1,3}(?:[.,]\d{1,2})?)(?:\s*cm)?" for _ in range(n)) + r"(?=\s|$|\|)")
+        out, pos = {}, 0
+        for m in rx.finditer(rest):
+            if out and m.start() - pos > 25:
+                break
+            pos = m.end()
+            out[norm_size(m.group(1))] = {k: float(v.replace(",", ".")) for k, v in zip(keys, m.groups()[1:]) if k}
+        if len(out) > len(best):
+            best = out
+    return best
+
+
 def parse_text(text):
     """Heurística para medidas em texto corrido."""
-    out = {}
+    out = parse_header_rows(text)
+    if out:
+        return out
     # estilo 1: "P: cintura 41 cm / quadril 49 ..." (tamanho primeiro)
     toks = list(re.finditer(r"(?P<size>(?:(?<=\s)|^)(?:[Tt][Aa][Mm](?:[Aa][Nn][Hh][Oo])?\.?\s*)?" + SIZE_TOK +
                             r"(?=\s*[:\-–]|\s*\)|\s+(?:cintura|quadril|comprimento|barra)))|"
@@ -322,7 +358,7 @@ def analyze_product(p, brand):
     if not cs:
         cs, src = colors_in(var_txt), "variante"
     if not cs:
-        cs, src = colors_in(desc[:600]), "descrição"
+        cs, src = colors_in(desc[:600], first_only=True), "descrição"
     labels = list(dict.fromkeys(c[0] for c in cs))
     grp = "outra" if any(g == "outra" for _, g in cs) else ("azul/preto" if cs else "indefinida")
     # "azul" de denim + cor de tingimento: título prevalece
@@ -448,9 +484,13 @@ def main(out="resultado.xlsx"):
         seen = set()
         for p in s["products"]:
             key = (p.get("url") or p.get("title") or "").rstrip("/")
-            if key in seen:
+            if re.search(r"^https?://[^/]+/[a-z]{2}/products?/", p.get("url") or ""):
+                continue  # cópia em outro idioma/moeda (Nuvemshop internacional)
+            k2 = (unacc(p.get("title") or ""), p.get("price"))
+            if key in seen or k2 in seen:
                 continue
             seen.add(key)
+            seen.add(k2)
             rec, pants = analyze_product(p, b["name"])
             n_pants += pants
             if not rec:
