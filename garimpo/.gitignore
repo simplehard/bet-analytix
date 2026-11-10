@@ -1,0 +1,6 @@
+cache/pages/
+cache/stores/
+cache/run.log
+cache/analise.json
+__pycache__/
+test.xlsx
