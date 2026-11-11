@@ -116,7 +116,7 @@ def collect():
                 "marca": b["name"], "nome": title, "url": url, "sil": sil, "grp": grp,
                 "cor": ", ".join(dict.fromkeys(c[0] for c in cs)) or "?", "tecido": " ".join(x for x in (fab, oz) if x),
                 "preco": price, "de": comp if comp and price and comp > price else None,
-                "disp": disp, "in_stock": in_stock,
+                "disp": disp, "in_stock": in_stock, "img": p.get("image"),
             })
     return rows, out_count, insta
 
