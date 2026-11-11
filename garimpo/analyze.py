@@ -25,8 +25,8 @@ KEEP = re.compile(r"\bboot\s?-?cult?\b|\bbootcut\b|\bflare[ds]?\b|\bbootleg\b|\b
 EXCL = [
     ("baggy", r"\bbaggy\b"), ("wide", r"\bwide\b|\bwideleg\b|\bwide-leg\b"), ("barrel", r"\bbarrel\b"),
     ("balloon", r"\bballoon\b|\bbalao\b"), ("curve", r"\bcurved?\b|\bcurvada\b"), ("oversized", r"\boversized?\b"),
-    ("pantalona", r"\bpantalona\b"), ("jogger", r"\bjogger\b"), ("cargo", r"\bcargo\b"),
-    ("feminina", r"\bfeminin[ao]\b|\bdama\b|\bwomen'?s?\b"), ("legging", r"\blegging\b"),
+    ("pantalona", r"\bpantalona\b"), ("jogger", r"\bjogger\b"), ("cargo", r"\bcargos?\b"),
+    ("feminina", r"\bfeminin[ao]\b|\bdama\b|\bmodeladora\b|\bbumbum\b|\bwomen'?s?\b"), ("legging", r"\blegging\b"),
 ]
 PANTS = re.compile(r"\bcalcas?\b|\bpants?\b|\bjeans?\b|\btrousers?\b|\bdenim\b|\bbootcut\b|\bflared?\b|\bbootleg\b")
 NOT_PANTS = re.compile(r"\b(camiseta|camisa|t-?shirt|tee|shorts?|bermuda|jort|saia|skirt|vestido|jaqueta|jacket|moletom|"

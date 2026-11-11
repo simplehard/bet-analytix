@@ -29,6 +29,8 @@ EXTRAS = [
     "recurva.com.br", "studiosecta.com.br", "darklingstudios.com.br", "thedustcompany.com.br",
     "quadrocreations.com", "hardjeanssanto.com", "egho.com.br", "cursed.com.br", "spirandellilaboratories.com",
     "welcomesunnygarments.com.br",
+    # achadas em busca na web (fora do diretório)
+    "shui.com.br", "strut.com.br", "desertdenimbrasil.com.br", "jeandarrot.com.br",
 ]
 
 
