@@ -19,7 +19,7 @@ TEES = os.path.join(HERE, "cache", "tees")
 SLUG = re.compile(r"camiseta|camisa-basica|\btee\b|-tee|tee-|t-?shirt|basica|basic", re.I)
 PRIO = re.compile(r"basica|basic|lisa|plain|essential|blank|heavy|pima|preto|preta|black|chumbo|grafite|cinza|washed|"
                   r"lavad|stone|charcoal", re.I)
-MAX_PAGES = 70
+MAX_PAGES = 400
 
 # varejo / marcas de básicos (VTEX tem API pública de catálogo, somente leitura)
 RETAIL = ["hering.com.br", "cea.com.br", "riachuelo.com.br", "usereserva.com", "youcom.com.br", "lojasrenner.com.br",
