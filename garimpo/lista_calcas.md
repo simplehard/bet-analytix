@@ -1,8 +1,8 @@
 # Calças de marcas brasileiras — lista completa
 
-Todas as calças encontradas nas lojas do [Brazil Made It](https://brazilmadeit.com.br/) e nas lojas extras: **1068 peças** (811 com algum tamanho disponível), de **104 marcas**.
+Todas as calças encontradas nas lojas do [Brazil Made It](https://brazilmadeit.com.br/) e nas lojas extras: **1071 peças** (814 com algum tamanho disponível), de **107 marcas**.
 
-Ficaram de fora (pelo título, tags ou modelagem declarada): baggy (282), moletom/track (238), cargo (187), feminina (146), short (103), larga (descrição) (83), wide (73), barrel (58), balloon (49), loose/relaxed (47), oversized (42), jogger (26), pantalona (7), legging (4), curve (1).
+Ficaram de fora (pelo título, tags ou modelagem declarada): baggy (282), moletom/track (238), cargo (187), feminina (146), short (103), larga (descrição) (83), wide (74), barrel (58), balloon (49), loose/relaxed (49), oversized (42), jogger (26), pantalona (7), legging (4), curve (1).
 
 Em cada seção: primeiro as disponíveis, depois as esgotadas; dentro disso, por marca e preço. Preço riscado = preço "de". Cor e modelagem saem do texto da loja — confira na foto.
 
@@ -11,8 +11,8 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 ## Sumário
 
 - [1. Bootcut / flare — cores fora do azul e preto](#1-bootcut--flare--cores-fora-do-azul-e-preto) — 6 (5 disponíveis)
-- [2. Bootcut / flare — cor não identificada (conferir na foto)](#2-bootcut--flare--cor-nao-identificada-conferir-na-foto) — 15 (9 disponíveis)
-- [3. Bootcut / flare — azul e preto](#3-bootcut--flare--azul-e-preto) — 34 (21 disponíveis)
+- [2. Bootcut / flare — cor não identificada (conferir na foto)](#2-bootcut--flare--cor-nao-identificada-conferir-na-foto) — 17 (11 disponíveis)
+- [3. Bootcut / flare — azul e preto](#3-bootcut--flare--azul-e-preto) — 35 (22 disponíveis)
 - [4. Retas / slim / straight — cores fora do azul e preto](#4-retas--slim--straight--cores-fora-do-azul-e-preto) — 150 (120 disponíveis)
 - [5. Retas / slim / straight — cor não identificada](#5-retas--slim--straight--cor-nao-identificada) — 87 (70 disponíveis)
 - [6. Retas / slim / straight — azul e preto](#6-retas--slim--straight--azul-e-preto) — 218 (169 disponíveis)
@@ -35,6 +35,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 
 | Marca | Peça | Cor | Tecido | Preço | Tamanhos disponíveis |
 |---|---|---|---|---|---|
+| Claudiarabelo | [Colete Jeans com Botões Coloridos e Martingale](https://claudiarabelo.com.br/products/colete-jeans-com-botoes-coloridos-martingale) | ? | jeans/denim, alfaiataria | R$ 353,00 | P |
 | Dust | [Calça Flare Jeans 70’s Dusty Wash](https://www.thedustcompany.com.br/produto/calca-jeans-70s-dusty-wash/) | ? | jeans/denim | R$ 379,62 | em estoque |
 | Egho Studios | [WORK FLARE DENIM x WSG](https://eghostudios.com/products/calca-jeans-flare) | ? | jeans/denim, couro 11.7 oz | R$ 609,00 | 36, 38, 40, 42, 44, 46, 48 |
 | jeandarrot | [Calça Masculina Jeans Extra Bootcut](https://www.jeandarrot.com.br/calca-masculina-jeans-extra-bootcut-241265ex12353/p) | ? | jeans/denim | R$ 139,90 ~~R$ 379,90~~ | em estoque |
@@ -43,6 +44,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Kardigan Studios | [Gloss Denim](https://www.kardiganstudios.net/produtos/gloss-denim-qexwe/) | ? | jeans/denim 12.06 oz | R$ 409,99 | 46 |
 | Kardigan Studios | [Paris Bootcut](https://www.kardiganstudios.net/produtos/paris-bootcut-1osuh/) | ? | jeans/denim 13 oz | R$ 409,99 | 38, 40, 42, 44, 46 |
 | studiosecta | [secta straight switch flare](https://studiosecta.com.br/produtos/secta-straight-switch-flare-leedo/) | ? | jeans/denim | R$ 649,00 | em estoque |
+| Txc | [CALCA JEANS BOOTCUT DRIFTER 18409](https://txc.com.br/products/calca-jeans-bootcut-drifter-18409) | ? | jeans/denim | R$ 219,95 ~~R$ 439,90~~ | 48 |
 | ukio | [Sully Bootcut Jeans](https://ukio.art.br/produtos/kage-repair-bootcut-jeans/) | ? | jeans/denim 13 oz | R$ 490,00 | 44, 46 |
 | 2variant | [FLARE VIBEZ](https://twovariant.com/produtos/flare-vibez/) | ? | veludo/cotelê | R$ 290,00 | **esgotada** |
 | 2variant | [DESTROYED FLARE](https://twovariant.com/produtos/destroyed-flare/) | ? | jeans/denim | R$ 400,00 | **esgotada** |
@@ -62,6 +64,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Dust | [Calça Flare Jeans 70’s Aged Blue](https://www.thedustcompany.com.br/produto/calca-jeans-70s-aged-blue/) | azul | jeans/denim | R$ 379,62 | em estoque |
 | Egho Studios | [BLACK TWILL/DENIM BOOTCUT PANTS](https://eghostudios.com/products/calca-bootcut-sarja-denim-black) | preto | jeans/denim, sarja 11 oz | R$ 589,00 | 36, 38, 44, 48 |
 | Egho Studios | [BOOTCUT TWILL/DENIM BLUE JEANS](https://eghostudios.com/products/calca-bootcut-sarja-denim-blue) | azul | jeans/denim, sarja 11 oz | R$ 609,00 | 38, 40, 42, 44, 46, 48 |
+| Gammba | [Calça Recife Masc](https://gammba.com/products/calca-recife-masc) | azul | jeans/denim | R$ 498,00 | 34, 36 |
 | Hanssy | [LOW RISE FLARE JEANS](https://hanssyclothing.com.br/produtos/low-rise-flare-jeans/) | azul | jeans/denim 12 oz | R$ 329,90 | 38, 40, 42, 44 |
 | hardjeanssanto | [Long Flare Jeans StrikeKnees](https://hardjeanssanto.com/produtos/long-flare-jeans-strikeknees/) | preto | jeans/denim 11 oz | R$ 330,00 ~~R$ 520,00~~ | 48, 44 |
 | hardjeanssanto | [Long Flare Jeans Stalker](https://hardjeanssanto.com/produtos/long-flare-jeans-night-urban/) | preto | jeans/denim 14 oz | R$ 390,00 ~~R$ 500,00~~ | 44 |
@@ -1158,6 +1161,9 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | shui | [shui.com.br](https://shui.com.br) |  | lista manual/editorial | 4 | 3 | 1 |
 | Atelier Aevus | [atelieraevus.com.br](https://atelieraevus.com.br) | [link](https://www.instagram.com/atelieraevus/) | Brazil Made It | 6 | 2 | 1 |
 | Hanssy | [hanssyclothing.com.br](https://hanssyclothing.com.br) | [link](https://www.instagram.com/hanssyclothing/) | Brazil Made It | 4 | 2 | 1 |
+| Claudiarabelo | [claudiarabelo.com.br](https://claudiarabelo.com.br) |  | StoreCensus (Shopify BR) | 1 | 1 | 1 |
+| Gammba | [gammba.com](https://gammba.com) |  | StoreCensus (Shopify BR) | 1 | 1 | 1 |
+| Txc | [txc.com.br](https://txc.com.br) |  | StoreCensus (Shopify BR) | 1 | 1 | 1 |
 | ukio | [ukio.art.br](https://ukio.art.br) |  | lista manual/editorial | 1 | 1 | 1 |
 | Cursed | [cursed.com.br](https://cursed.com.br) | [link](https://www.instagram.com/cursed.dfe/) | Brazil Made It | 1 | 0 | 1 |
 | Oribá | [oriba.com.br](https://oriba.com.br) | [link](https://www.instagram.com/oriba/) | Brazil Made It | 55 | 49 | 0 |

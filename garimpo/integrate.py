@@ -33,7 +33,7 @@ def main():
             continue
         n_hit += 1
         final = re.sub(r"^https?://(www\.)?", "", r.get("final_url") or "").split("/")[0] or r["domain"]
-        txt = " ".join((p.get("title") or "") + " " + (p.get("description_text") or "")[:500] for p in r["products"])
+        txt = " ".join(p.get("title") or "" for p in r["products"])
         if not (final.endswith(".br") or r["domain"].endswith(".br") or PT.search(txt)):
             continue
         dom = r["domain"]
