@@ -1,8 +1,8 @@
 # Calças de marcas brasileiras — lista completa
 
-Todas as calças encontradas nas lojas do [Brazil Made It](https://brazilmadeit.com.br/) e nas lojas extras: **1027 peças** (776 com algum tamanho disponível), de **95 marcas**.
+Todas as calças encontradas nas lojas do [Brazil Made It](https://brazilmadeit.com.br/) e nas lojas extras: **1068 peças** (811 com algum tamanho disponível), de **104 marcas**.
 
-Ficaram de fora (pelo título, tags ou modelagem declarada): baggy (278), moletom/track (237), cargo (187), feminina (143), short (96), larga (descrição) (81), wide (62), barrel (58), balloon (49), oversized (41), loose/relaxed (41), jogger (26), pantalona (5), legging (4), curve (1).
+Ficaram de fora (pelo título, tags ou modelagem declarada): baggy (282), moletom/track (238), cargo (187), feminina (146), short (103), larga (descrição) (83), wide (73), barrel (58), balloon (49), loose/relaxed (47), oversized (42), jogger (26), pantalona (7), legging (4), curve (1).
 
 Em cada seção: primeiro as disponíveis, depois as esgotadas; dentro disso, por marca e preço. Preço riscado = preço "de". Cor e modelagem saem do texto da loja — confira na foto.
 
@@ -11,14 +11,14 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 ## Sumário
 
 - [1. Bootcut / flare — cores fora do azul e preto](#1-bootcut--flare--cores-fora-do-azul-e-preto) — 6 (5 disponíveis)
-- [2. Bootcut / flare — cor não identificada (conferir na foto)](#2-bootcut--flare--cor-nao-identificada-conferir-na-foto) — 12 (8 disponíveis)
-- [3. Bootcut / flare — azul e preto](#3-bootcut--flare--azul-e-preto) — 33 (20 disponíveis)
-- [4. Retas / slim / straight — cores fora do azul e preto](#4-retas--slim--straight--cores-fora-do-azul-e-preto) — 144 (116 disponíveis)
-- [5. Retas / slim / straight — cor não identificada](#5-retas--slim--straight--cor-nao-identificada) — 85 (68 disponíveis)
-- [6. Retas / slim / straight — azul e preto](#6-retas--slim--straight--azul-e-preto) — 211 (164 disponíveis)
-- [7. Modelagem não informada — cores fora do azul e preto](#7-modelagem-nao-informada--cores-fora-do-azul-e-preto) — 198 (154 disponíveis)
-- [8. Modelagem não informada — cor não identificada](#8-modelagem-nao-informada--cor-nao-identificada) — 156 (101 disponíveis)
-- [9. Modelagem não informada — azul e preto](#9-modelagem-nao-informada--azul-e-preto) — 182 (140 disponíveis)
+- [2. Bootcut / flare — cor não identificada (conferir na foto)](#2-bootcut--flare--cor-nao-identificada-conferir-na-foto) — 15 (9 disponíveis)
+- [3. Bootcut / flare — azul e preto](#3-bootcut--flare--azul-e-preto) — 34 (21 disponíveis)
+- [4. Retas / slim / straight — cores fora do azul e preto](#4-retas--slim--straight--cores-fora-do-azul-e-preto) — 150 (120 disponíveis)
+- [5. Retas / slim / straight — cor não identificada](#5-retas--slim--straight--cor-nao-identificada) — 87 (70 disponíveis)
+- [6. Retas / slim / straight — azul e preto](#6-retas--slim--straight--azul-e-preto) — 218 (169 disponíveis)
+- [7. Modelagem não informada — cores fora do azul e preto](#7-modelagem-nao-informada--cores-fora-do-azul-e-preto) — 209 (165 disponíveis)
+- [8. Modelagem não informada — cor não identificada](#8-modelagem-nao-informada--cor-nao-identificada) — 163 (108 disponíveis)
+- [9. Modelagem não informada — azul e preto](#9-modelagem-nao-informada--azul-e-preto) — 186 (144 disponíveis)
 
 ## 1. Bootcut / flare — cores fora do azul e preto
 
@@ -43,10 +43,13 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Kardigan Studios | [Gloss Denim](https://www.kardiganstudios.net/produtos/gloss-denim-qexwe/) | ? | jeans/denim 12.06 oz | R$ 409,99 | 46 |
 | Kardigan Studios | [Paris Bootcut](https://www.kardiganstudios.net/produtos/paris-bootcut-1osuh/) | ? | jeans/denim 13 oz | R$ 409,99 | 38, 40, 42, 44, 46 |
 | studiosecta | [secta straight switch flare](https://studiosecta.com.br/produtos/secta-straight-switch-flare-leedo/) | ? | jeans/denim | R$ 649,00 | em estoque |
+| ukio | [Sully Bootcut Jeans](https://ukio.art.br/produtos/kage-repair-bootcut-jeans/) | ? | jeans/denim 13 oz | R$ 490,00 | 44, 46 |
 | 2variant | [FLARE VIBEZ](https://twovariant.com/produtos/flare-vibez/) | ? | veludo/cotelê | R$ 290,00 | **esgotada** |
 | 2variant | [DESTROYED FLARE](https://twovariant.com/produtos/destroyed-flare/) | ? | jeans/denim | R$ 400,00 | **esgotada** |
 | 2variant | [LEVI’s FLARE](https://twovariant.com/produtos/levis-flare/) | ? | jeans/denim | R$ 400,00 | **esgotada** |
 | Cursed | [WAX DISTRESSED FLARE](https://cursed.com.br/produtos/wax-distressed-flare/) | ? | jeans/denim 13 oz | R$ 430,00 | **esgotada** |
+| damagewip | [Tarântula Pants](https://www.damagewip.com.br/produtos/tarantula-pants/) | ? | veludo/cotelê | R$ 220,00 ~~R$ 399,99~~ | **esgotada** |
+| damagewip | [Velvet Zip Pants](https://www.damagewip.com.br/produtos/velvet-zip-pants-pgfhx/) | ? | veludo/cotelê | R$ 750,00 | **esgotada** |
 
 ## 3. Bootcut / flare — azul e preto
 
@@ -62,6 +65,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Hanssy | [LOW RISE FLARE JEANS](https://hanssyclothing.com.br/produtos/low-rise-flare-jeans/) | azul | jeans/denim 12 oz | R$ 329,90 | 38, 40, 42, 44 |
 | hardjeanssanto | [Long Flare Jeans StrikeKnees](https://hardjeanssanto.com/produtos/long-flare-jeans-strikeknees/) | preto | jeans/denim 11 oz | R$ 330,00 ~~R$ 520,00~~ | 48, 44 |
 | hardjeanssanto | [Long Flare Jeans Stalker](https://hardjeanssanto.com/produtos/long-flare-jeans-night-urban/) | preto | jeans/denim 14 oz | R$ 390,00 ~~R$ 500,00~~ | 44 |
+| howiseethings | [CALÇA BOOT CUT DE MALHA / PRETA](https://www.howiseethings.com.br/products/calca-boot-cut-de-malha-preta-1) | preto |  | R$ 380,00 | G, GG, XGG |
 | jeandarrot | [Calça Masculina Jeans Extra Bootcut -  Jeans Claro](https://www.jeandarrot.com.br/calca-masculina-jeans-extra-bootcut----jeans-claro-250444ex12353/p) | azul | jeans/denim | R$ 189,90 ~~R$ 389,90~~ | em estoque |
 | Kardigan Studios | [Rockstar jeans azul](https://www.kardiganstudios.net/produtos/rockstar-jeans-azul-1qd28/) | azul | jeans/denim 12.06 oz | R$ 419,99 | 38, 40, 42, 44, 46 |
 | Kleos | [Kleos bootcut Black](https://fskleos.lojavirtualnuvem.com.br/produtos/kleos-bootcut-black-l5c0l/) | preto |  | R$ 369,00 | PP, P, M, G, GG |
@@ -139,6 +143,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | hardjeanssanto | [Straight Rebel Stoned Brown](https://hardjeanssanto.com/produtos/straight-rebel-stoned-brown-pants/) | marrom | jeans/denim 10 oz | R$ 280,00 ~~R$ 500,00~~ | 38, 44 |
 | Hilf Streetwear | [Calça Reta Linho (Bege)](https://hilfstreetwear.com.br/products/calca-reta-linho-bege) | bege/cru | linho | R$ 74,90 ~~R$ 99,90~~ | M, G, GG |
 | Hilf Streetwear | [Calça Reta em Sarja (Cinza)](https://hilfstreetwear.com.br/products/calca-reta-em-sarja-cinza-2024-04-26-11-06-33) | cinza | sarja | R$ 79,90 ~~R$ 84,90~~ | P, M, G, GG |
+| howiseethings | [CALÇA CÓS ELÁSTICO / CINZA MESCLA ESCURO](https://www.howiseethings.com.br/products/calca-cos-elastico-cinza-mescla-escuro-1) | cinza |  | R$ 379,00 | PP, M, XGG |
 | IDK Studios | [Social Work Olive Pants](https://www.idkstudios.com.br/calca-social-work-olive-pants) | verde | sarja | R$ 364,04 | em estoque |
 | Isa Lucena | [CALÇA ALFAIATARIA RISCA DE GIZ CINZA RETA](https://isalucena.com.br/produtos/calca-alfaiataria-risca-de-giz-cinza-reta-lqlqh/) | cinza | jeans/denim, alfaiataria | R$ 289,90 | em estoque |
 | Isa Lucena | [Calça Alfaiataria Reta Unissex Cinza Claro](https://isalucena.com.br/produtos/calca-alfaiataria-reta-unissex-cinza-claro/) | cinza | sarja, alfaiataria | R$ 319,90 | em estoque |
@@ -174,11 +179,14 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | No Hype | [Calça Sarja Reta Marrom](https://www.lojanohype.com.br/produtos/calca-sarja-reta-marrom/) | marrom | sarja | R$ 68,00 ~~R$ 85,00~~ | P, M, GG |
 | No Hype | [Calça Sarja Reta Bordô](https://www.lojanohype.com.br/produtos/calca-sarja-reta-bordo/) | vermelho/vinho | sarja | R$ 68,00 ~~R$ 85,00~~ | P, M, G, GG |
 | No Hype | [Calça Sarja Reta Off White](https://www.lojanohype.com.br/produtos/calca-sarja-reta-off-white/) | bege/cru | sarja | R$ 68,00 ~~R$ 85,00~~ | M, G |
+| normando | [Calça Reta Alfaiataria](https://www.normando.co/products/calca-reta-alfaiataria-preto) | preto, bege/cru | alfaiataria | R$ 1.197,00 | 40, 42, 38 |
+| normando | [Calça Alfaiataria Reta Viscose Encerada Verde](https://www.normando.co/products/calca-alfaiataria-reta-viscose-encerada-verde) | verde | alfaiataria | R$ 3.200,00 | 36, 38, 40, 42, 44, 46, 48 |
 | Pace | [TAISHOGOTO PANTS OFF WHITE](https://pacecompany.com.br/products/taishogoto-pants) | bege/cru |  | R$ 1.400,00 | em estoque |
 | Quadro Creations | [ROGUE DENIM PANTS FADED PURPLE](https://www.quadrocreations.com/products/rogue-denim-pants-faded-salmon) | roxo | jeans/denim 12 oz | R$ 325,00 ~~R$ 780,00~~ | 36, 40 |
 | Quadro Creations | [ROGUE DENIM PANTS FADED GREEN](https://www.quadrocreations.com/products/rogue-denim-pants-baby-blue) | verde | jeans/denim 12 oz | R$ 325,00 ~~R$ 780,00~~ | 36, 38, 40, 42, 44, 46 |
 | Quadro Creations | [COMBAT TWILL PANTS MELANGE BROWN](https://www.quadrocreations.com/products/combat-twill-pants-melange-brown) | marrom | sarja, canvas/lona | R$ 455,00 ~~R$ 1.014,00~~ | 42 |
 | Retroy | [Calça Reta Malhão Rugby Retroy Unissex Marrom](https://www.retroy.com.br/calca-reta-malhao-rugby-retroy-unissex-marrom) | marrom | alfaiataria | R$ 139,90 | em estoque |
+| sardegnasartoria | [Calça Slim Ello](https://sardegnasartoria.com.br/products/trouser-slim-ello) | cinza, azul |  | R$ 847,50 ~~R$ 1.695,00~~ | 38, 40 |
 | Seabird | [Calça Alfaiataria Verde Militar](https://seabirdco.com.br/produtos/calca-alfaiataria-verde-militar/) | verde | sarja, alfaiataria | R$ 245,65 ~~R$ 289,00~~ | 38, 40, 42, 44, 46, 48 |
 | Seabird | [Calça Alfaiataria Cinza](https://seabirdco.com.br/produtos/calca-alfaiataria-cinza/) | cinza | sarja, alfaiataria | R$ 245,65 ~~R$ 289,00~~ | 38, 40, 46, 48 |
 | shui | [CALÇA SHUI RETA FRIZO TWILL ALFAIATARIA SS23](https://www.shui.com.br/produtos/calca-shui-reta-frizo-twill-alfaiataria-ss23/) | preto, bege/cru, cinza | sarja, alfaiataria | R$ 89,94 ~~R$ 149,90~~ | PP, P, M, G, GG, XG |
@@ -211,6 +219,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Approve | [Calça Reta Approve X Omo Branco E Azul](https://justapprove.com.br/produtos/calca-reta-approve-x-omo-branco-e-azul/) | branco, azul |  | R$ 499,99 | **esgotada** |
 | Approve | [Calça Reta Approve Brown Velvet Marrom](https://justapprove.com.br/produtos/calca-reta-approve-brown-velvet-marrom-1kkwm/) | marrom | sarja, veludo/cotelê | R$ 599,99 | **esgotada** |
 | Approve | [Calça Workwear Approve By Picon Verde](https://justapprove.com.br/produtos/calca-workwear-approve-by-picon-verde/) | verde | sarja | R$ 699,99 | **esgotada** |
+| cacete | [CALÇA SAMBA DOIS CÓS BRANCO](https://cacete.co/products/calca-samba-dois-cos-branco) | branco |  | R$ 390,00 | **esgotada** |
 | Carnan | [Standard Washed Jeans](https://www.carnan.com.br/products/standard-washed-jeans-masculino) | cinza | jeans/denim | R$ 629,00 | **esgotada** |
 | Desgosto | [CALÇA CARPENTER - MARROM](https://desgosto.com/produtos/calca-carpenter-marrom/) | marrom | sarja | R$ 159,00 ~~R$ 419,00~~ | **esgotada** |
 | Dreher | [Calça Obra DK Black & White](https://www.drehershop.com/product-page/cal%C3%A7a-obra-dk-black-white) | preto, branco | sarja | R$ 319,00 | **esgotada** |
@@ -224,6 +233,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | mondepars | [Calça Kai](https://www.mondepars.com/products/calca-kai-burgundy) | vermelho/vinho | alfaiataria | R$ 2.490,00 | **esgotada** |
 | mondepars | [Calça Kai](https://www.mondepars.com/products/calca-kai-cinza) | cinza | alfaiataria | R$ 2.490,00 | **esgotada** |
 | mondepars | [Calça Kai](https://www.mondepars.com/products/calca-kai-cinza-claro) | cinza | alfaiataria | R$ 2.490,00 | **esgotada** |
+| normando | [Calça Reta Alfaiataria](https://www.normando.co/products/calca-reta-alfaiataria) | bege/cru, preto | alfaiataria | R$ 1.197,00 | **esgotada** |
 | Quadro Creations | [CALÇA FETT STRAIGHT - VERDE](https://www.quadrocreations.com/products/calca-fett-straight-verde) | verde |  | R$ 130,00 ~~R$ 508,17~~ | **esgotada** |
 | Quadro Creations | [BRUBECK BROWN PANTS](https://www.quadrocreations.com/products/brubeck-brown-pants) | marrom |  | R$ 218,36 ~~R$ 727,87~~ | **esgotada** |
 | Quadro Creations | [ASKEW TAILORED GREY TROUSERS](https://www.quadrocreations.com/products/askew-tailored-grey-trousers) | cinza | alfaiataria | R$ 260,00 ~~R$ 1.039,87~~ | **esgotada** |
@@ -290,6 +300,8 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Oribá | [Calça Chino Lã Fria com Elastano](https://www.oriba.com.br/calca-chino-la-fria-com-elastano-152298) | ? |  | R$ 1.300,00 | em estoque |
 | Oribá | [Calça Chino Lã Fria Textura](https://www.oriba.com.br/calca-chino-la-fria-textura-152297) | ? |  | R$ 1.600,00 | em estoque |
 | Oribá | [Calça Chino Lã com Cashmere](https://www.oriba.com.br/calca-chino-la-com-cashmere-152294) | ? |  | R$ 1.600,00 | em estoque |
+| sardegnasartoria | [Calça de Linho Cagliari Basil](https://sardegnasartoria.com.br/products/trouser-linen-cagliari-new-basil) | ? | linho, alfaiataria | R$ 857,50 ~~R$ 1.715,00~~ | 38, 40, 42, 44, 46, 48 |
+| sardegnasartoria | [Blazer de Linho Bright Jeans](https://sardegnasartoria.com.br/products/apparel-overshirt-blazerlinen-brightjeans) | ? | jeans/denim, linho | R$ 1.915,00 | 42, 44, 46, 48 |
 | Sopro co. | [Calça de Cotele Treino de Quarta](https://www.soprocompany.com.br/products/calca-de-cotele-treino-de-quarta) | ? | veludo/cotelê | R$ 389,00 ~~R$ 579,00~~ | 38, 40, 42, 44, 46, 48 |
 | SOW | [BASKETCASE Straight Leg Denim - 44](https://sowsupply.com/products/vintage-basketcase-straight-leg-denim-44) | ? | jeans/denim | R$ 399,00 ~~R$ 459,00~~ | em estoque |
 | Stranger Co. | [Calça Carpinteiro Jeans Reta Stranger (Estonada)](https://stranger.com.br/calca-carpinteiro-jeans-reta-stranger-estonada) | ? | jeans/denim | R$ 117,74 | em estoque |
@@ -403,6 +415,9 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | HOVorg | [Calça jeans Reta - Everywhere](https://hovorg.shop/produtos/calca-jeans-rawline-reta-everywhere1/) | azul | jeans/denim | R$ 299,90 ~~R$ 499,90~~ | P, M, G, GG, XG |
 | HOVorg | [Calça jeans Reta - Everyday](https://hovorg.shop/produtos/calca-jeans-rawline-reta-everywhere/) | preto | jeans/denim | R$ 299,90 ~~R$ 499,90~~ | P, M, G, GG, XG |
 | HOVorg | [A Calça HOV Heavy Carpenter - Everyday](https://hovorg.shop/produtos/a-calca-hov-heavy-carpenter-everyday-18g7s/) | preto |  | R$ 329,90 ~~R$ 649,90~~ | P, M, G, GG, XG |
+| howiseethings | [CALÇA RETA JEANS LAVAGEM ESCURA](https://www.howiseethings.com.br/products/calca-reta-jeans-lavagem-escura-1) | azul | jeans/denim | R$ 373,75 ~~R$ 575,00~~ | PP, P, M, G, GG, XGG |
+| howiseethings | [CALÇA DE MALHA COM CÓS ELÁSTICO / PRETA](https://www.howiseethings.com.br/products/calca-de-malha-com-cos-elastico-preta-1) | preto | moletom | R$ 379,00 | GG |
+| howiseethings | [JAQUETA JEANS RETA LAVAGEM ESCURA](https://www.howiseethings.com.br/products/jaqueta-jeans-reta-lavagem-escura-1) | azul | jeans/denim, alfaiataria | R$ 419,25 ~~R$ 645,00~~ | P, PP, M, G, GG, XGG |
 | IDK Studios | [Washed Denim Pants](https://www.idkstudios.com.br/calca-washed-denim-pants) | azul | jeans/denim | R$ 319,20 | em estoque |
 | IDK Studios | [Social Work Black Pants](https://www.idkstudios.com.br/calca-social-work-black-pants) | preto | sarja | R$ 364,04 | em estoque |
 | Isa Lucena | [CALÇA ALFAIATARIA RISCA DE GIZ AZUL RETA](https://isalucena.com.br/produtos/calca-alfaiataria-risca-de-giz-azul-reta-1ymlx/) | azul | jeans/denim, alfaiataria | R$ 289,90 | em estoque |
@@ -447,6 +462,8 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Oribá | [Calça Beta Jeans Reta Clara](https://www.oriba.com.br/calca-beta-jeans-reta-clara-152068) | azul | jeans/denim | R$ 650,00 | em estoque |
 | Pace | [HERIPO PANTS - RAW DENIM](https://pacecompany.com.br/products/heripo-brown-denim) | azul | jeans/denim, alfaiataria 14 oz | R$ 1.200,00 | XS, S, M, L, XL, XXL |
 | Pace | [TAISHOGOTO PANTS - BLACK](https://pacecompany.com.br/products/taishogoto-pants-black) | preto |  | R$ 1.400,00 | L |
+| sardegnasartoria | [Calça de Linho Porto Cervo](https://sardegnasartoria.com.br/products/trouser-linen-porto-cervo) | azul | linho | R$ 857,50 ~~R$ 1.715,00~~ | 38, 40, 42, 44, 46, 48 |
+| sardegnasartoria | [Calça de Linho](https://sardegnasartoria.com.br/products/trouser-linen) | azul | linho, alfaiataria | R$ 857,50 ~~R$ 1.715,00~~ | 46, 48, 40, 44, 38, 42 |
 | Seabird | [Calça Alfaiataria Preta](https://seabirdco.com.br/produtos/calca-alfaiataria-preta/) | preto | sarja, alfaiataria | R$ 245,65 ~~R$ 289,00~~ | 38, 40, 42, 44, 46 |
 | shui | [CALÇA SHUI RETA TECH MALHA SPORT FW26](https://www.shui.com.br/produtos/calca-shui-reta-tech-malha-sport-fw26/) | preto |  | R$ 111,96 ~~R$ 279,90~~ | M, G |
 | Skopos | ["Bleeding Indigo" Selvedge Denim](https://skopostudios.com.br/produtos/japanese-milled-selvedge-denim-1mn64/) | azul | jeans/denim 13.5 oz | R$ 1.200,00 | em estoque |
@@ -508,6 +525,8 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Asteric | [Calça Reta Jeans Rasgada Urban Pulse](https://www.asteric.com.br/products/calca-reta-jeans-rasgada-streetwear) | azul, preto | jeans/denim, brim | R$ 399,00 | **esgotada** |
 | Banzo | [BLACK TAILORED PANTS](https://ban-zo.com/produtos/bso_tail_beau_blac/) | preto | alfaiataria | R$ 749,90 | **esgotada** |
 | Baw | [CALCA CHINO BOX LOGO](https://www.bawclothing.com.br/produto/calca-chino-box-logo-153457) | preto |  | R$ 149,00 | **esgotada** |
+| cacete | [CALÇA SAMBA DOIS CÓS PRETO](https://cacete.co/products/calca-samba-dois-cos-preto) | preto |  | R$ 390,00 | **esgotada** |
+| cacete | [CALÇA JEANS SLIP](https://cacete.co/products/calca-jeans-slip) | azul | jeans/denim | R$ 720,00 | **esgotada** |
 | Desgosto | [CALÇA CARPENTER - PRETA](https://desgosto.com/produtos/calca-carpenter-preta/) | preto | sarja | R$ 419,00 | **esgotada** |
 | Desgosto | [CALÇA JEANS DE ARTISTA](https://desgosto.com/produtos/calca-jeans-de-artista-1ipma/) | azul | jeans/denim | R$ 459,00 | **esgotada** |
 | Desgosto | [CALÇA JEANS ESTRELA](https://desgosto.com/produtos/calca-jeans-estrela/) | azul | jeans/denim | R$ 499,00 | **esgotada** |
@@ -590,7 +609,11 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Coroa Clothing | [Jaqueta Jeans Boxy Coroa x Xeque Mate](https://coroacompany.com.br/produtos/jaqueta-jeans-boxy-coroa-x-xeque-mate-4yfef/) | verde | jeans/denim | R$ 399,90 ~~R$ 449,90~~ | M, GG, XGG |
 | Coroa Clothing | [Calça Sarja Gardener](https://coroacompany.com.br/produtos/calca-sarja-carpenter-4jkcg/) | marrom | sarja 12 oz | R$ 399,90 | 38, 40, 42, 44, 46, 48, 50 |
 | D'MORAIS FAMILY ATELIER | [ALF MOCHA PANTS](https://dmoraisatelier.com.br/produtos/alf-mocha-pants-1oq8d/) | marrom | alfaiataria | R$ 389,90 | PP, P, M, G, GG, XG |
+| dendezeiro | [CALÇA DDZ ESTL - BEGE](https://dendezeiro.com.br/products/calca-ddz-estl-bege) | bege/cru |  | R$ 400,00 | P, M, G, GG |
+| dendezeiro | [Calça Brasiliana Branca](https://dendezeiro.com.br/products/calca-brasiliana-branca) | branco | brim | R$ 400,00 | PP, P, G, GG, EGG |
+| dendezeiro | [CALÇA BRASILIANA BRANCA](https://dendezeiro.com.br/products/calca-brasiliana-branca-1) | branco | brim | R$ 470,00 | PP, P, M, G, GG, EGG, G1, G2, G3 |
 | Dreher | [Boina Oliver's Denim 5oz](https://www.drehershop.com/product-page/boina-denim-11oz-jack-and-jully) | verde | jeans/denim 5 oz | R$ 124,60 | em estoque |
+| eloemcomum | [CALÇA SARJA "OVERLAP"](https://eloemcomum.com/products/calca-sarja-overlap) | marrom, preto | sarja | R$ 499,00 | 38, 40, 42, 44, 46 |
 | FAS | [Calça Lord - Grape](https://www.fasclothing.com.br/products/calca-lord-grape) | roxo |  | R$ 358,00 | P, M, G, GG |
 | FAS | [Calça Lord - Off White](https://www.fasclothing.com.br/products/calca-lord-off-white) | bege/cru |  | R$ 358,00 | P, M, G, GG |
 | FAS | [Calça Lord - Pink](https://www.fasclothing.com.br/products/calca-lord-pink) | rosa |  | R$ 358,00 | P, M, G, GG |
@@ -629,6 +652,10 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | hardjeanssanto | [Vigarista Pants Sand](https://hardjeanssanto.com/produtos/trickster-areia/) | bege/cru | jeans/denim, sarja | R$ 260,00 ~~R$ 400,00~~ | 40, 38, 42, 44, 46 |
 | High | [Jeans Mini Skirt Core Brown](https://highcompanybr.com/products/jeans-mini-skirt-core-brown) | marrom | jeans/denim | R$ 259,00 | em estoque |
 | High | [Grey Tech Pants](https://highcompanybr.com/products/grey-tech-pants) | cinza | alfaiataria | R$ 559,00 | em estoque |
+| howiseethings | [CALÇA OVAL DE SARJA LISTRADA / AZUL E MARROM](https://www.howiseethings.com.br/products/calca-oval-algodao-listrada-utilitaria-343590169) | azul, marrom | sarja, alfaiataria | R$ 324,35 ~~R$ 499,00~~ | M, G |
+| howiseethings | [CALÇA DE ALFAIATARIA OVAL / CINZA CLARO](https://www.howiseethings.com.br/products/calca-de-alfaiataria-oval-cinza-claro-1) | cinza | alfaiataria | R$ 439,20 ~~R$ 549,00~~ | PP, G, GG, XGG |
+| howiseethings | [CALÇA DE ALFAIATARIA OVAL / BEGE](https://www.howiseethings.com.br/products/calca-de-alfaiataria-oval-bege-1) | bege/cru | alfaiataria | R$ 439,20 ~~R$ 549,00~~ | PP, P, M, G, GG, XGG |
+| inttui | [Calça Bag Lou](https://inttui.com.br/produto/calca-bag-lou/) | bege/cru | sarja, alfaiataria | R$ 698,00 | estoque n/d |
 | Inverso | [Calça Logo Inverso](https://www.useinverso.com.br/products/calca-logo-inverso) | cinza |  | R$ 219,90 | P, M, G, GG |
 | Kamizahia | [Calça Flanelada Xadrez Vermelho](https://www.kamizahia.com.br/produtos/calca-flanelada-xadrez-vermelho) | vermelho/vinho |  | R$ 140,00 ~~R$ 199,00~~ | em estoque |
 | Kamizahia | [Calça Flanelada Xadrez Amarelo](https://www.kamizahia.com.br/produtos/calca-flanelada-xadrez-amarelo) | amarelo/ocre |  | R$ 140,00 ~~R$ 199,00~~ | em estoque |
@@ -679,6 +706,9 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Pace | [3M UV PANTS POLAR CREAM](https://pacecompany.com.br/products/3m-uv-pants-polar-cream) | bege/cru |  | R$ 1.499,00 | 42, 44, 48, 50 |
 | Quadro Creations | [BLOOMER COTTON TROUSERS OFF WHITE](https://www.quadrocreations.com/products/bloomer-cotton-trousers-off-white) | bege/cru |  | R$ 520,00 ~~R$ 936,00~~ | 36, 38 |
 | Quadro Creations | [MARSO TROUSERS BROWN](https://www.quadrocreations.com/products/marso-trousers-brown) | marrom | alfaiataria | R$ 780,00 ~~R$ 1.170,00~~ | 42, 46 |
+| sardegnasartoria | [Calça de Sarja](https://sardegnasartoria.com.br/products/trouser-cotton) | azul, bege/cru | sarja, alfaiataria | R$ 647,50 ~~R$ 1.295,00~~ | 44, 46 |
+| sardegnasartoria | [Calça Costa Bianca White](https://sardegnasartoria.com.br/products/trouser-costa-bianca-white) | branco | sarja, alfaiataria | R$ 647,50 ~~R$ 1.295,00~~ | 38, 40, 42, 44, 46 |
+| sardegnasartoria | [Calça Porto Cervo Cotolin Off White](https://sardegnasartoria.com.br/products/trouser-cotolin-cagliari-off-white) | bege/cru | linho | R$ 797,50 ~~R$ 1.595,00~~ | 46, 48 |
 | Singa | [Calça M-65 Beluga Estonado](https://us.singapurastore.com/products/calca-m-65-moore-beluga) | verde |  | R$ 729,00 | PP, P |
 | Singa | [Calça M-65 Verde Estonado](https://us.singapurastore.com/products/calca-m-65-moore-verde) | verde |  | R$ 729,00 | PP, P, M, G, GG |
 | Sopro co. | [Calça Parachuetes Viela](https://www.soprocompany.com.br/products/calca-parachuetes-viela) | bege/cru |  | R$ 99,50 ~~R$ 399,00~~ | 42, 44 |
@@ -792,6 +822,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Baw | [CALCA KIDS SPLASH LOGO](https://www.bawclothing.com.br/produto/calca-kids-splash-logo-152127) | ? |  | R$ 299,00 | em estoque |
 | Bolovo | [Calça Dins 2.0 BLV](https://www.bolovo.com.br/products/calca-dins-2-0-blv-672471735) | ? |  | R$ 499,99 | P, M, G, GG, XGG |
 | CTT Studios | [CALÇA “2P’s”](https://cattistudios.com.br/produtos/calca-2ps/) | ? |  | R$ 279,90 | em estoque |
+| dendezeiro | [CALÇA ALFAIATARIA](https://dendezeiro.com.br/products/calca-alfaiataria) | ? | alfaiataria | R$ 730,00 | PP, P, M, G, GG, EGG |
 | Down Jacquards | [ZIP JEANS CATAPORA (SPECIAL EDITION)](https://www.downjacquards.com.br/produtos/zip-jeans-catapora-special-edition/) | ? | jeans/denim |  | em estoque |
 | Down Jacquards | [TAILORED PANTS LUXURY GARMENT JACQUARD.DJ1](https://www.downjacquards.com.br/produtos/tailored-pants-luxury-garment-jacquard-dj1/) | ? | alfaiataria | R$ 789,00 | em estoque |
 | Ephiphany | [Convertible jeans “Luck pants”](https://ephny.com.br/produtos/convertible-jeans-luck-pants/) | ? | jeans/denim | R$ 259,90 ~~R$ 399,90~~ | M, GG |
@@ -811,6 +842,12 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | High | [Denim Pants Minimal Patch Grey](https://highcompanybr.com/products/denim-pants-minimal-patch-grey) | ? | jeans/denim | R$ 475,15 ~~R$ 559,00~~ | 38, 40, 42, 44, 46, 48 |
 | High | [Calça "HIGH a/c BARRA"](https://highcompanybr.com/products/calca-high-a-c-barra) | ? | sarja | R$ 599,00 | 36, 40, 42, 44 |
 | High | [Calça Highcia](https://highcompanybr.com/products/calca-highcia) | ? |  | R$ 619,00 | em estoque |
+| howiseethings | [CAMISA MANGA CURTA JEANS LAVAGEM VINTAGE](https://www.howiseethings.com.br/products/camisa-manga-curta-jeans-lavagem-vintage-1) | ? | jeans/denim | R$ 328,25 ~~R$ 505,00~~ | PP, M, G, GG, XGG |
+| inttui | [Calça Longa Vin](https://inttui.com.br/produto/calca-longa-vin/) | ? |  | R$ 668,00 | estoque n/d |
+| inttui | [Calça Brenno](https://inttui.com.br/produto/calca-brenno/) | ? |  | R$ 668,00 | estoque n/d |
+| inttui | [Calça Lou](https://inttui.com.br/produto/calca-lou/) | ? |  | R$ 798,00 | estoque n/d |
+| inttui | [calça longa noite](https://inttui.com.br/produto/calca-longa-noite/) | ? |  | R$ 798,00 | estoque n/d |
+| inttui | [Calça Vaney](https://inttui.com.br/produto/calca-vaney/) | ? |  | R$ 1.298,00 | estoque n/d |
 | Isa Lucena | [camisa jeans](https://isalucena.com.br/produtos/camisa-jeans/) | ? | jeans/denim | R$ 239,90 | P, M, G, GG |
 | Kamizahia | [Calça Estampada Zebra](https://www.kamizahia.com.br/produtos/calca-estampada-zebra) | ? |  | R$ 140,00 ~~R$ 199,00~~ | em estoque |
 | Kamizahia | [Calça Linen](https://www.kamizahia.com.br/produtos/calca-linen) | ? | linho | R$ 140,00 ~~R$ 199,00~~ | em estoque |
@@ -941,6 +978,10 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Cipher | [CIPHER "SIX PACK V2" BLACK PANTS](https://cipherplague.com.br/products/cipher-six-pack-v2-black-pants) | preto |  | R$ 259,90 ~~R$ 359,90~~ | 42 |
 | Cipher | [CIPHER JEANS BLACK CRYSTAL JACKET](https://cipherplague.com.br/products/cipher-black-bermuda-jeans-1) | preto | jeans/denim 12 oz | R$ 399,90 ~~R$ 499,90~~ | G, GG |
 | D'MORAIS FAMILY ATELIER | [ALF BLACK PANTS](https://dmoraisatelier.com.br/produtos/alf-black-pants-1bnew/) | preto | alfaiataria | R$ 389,90 | PP, P, M, G, GG, XG |
+| dendezeiro | [CALÇA DDZ ESTL - PRETO](https://dendezeiro.com.br/products/estl-3) | preto |  | R$ 400,00 | P, M, GG |
+| dendezeiro | [CALÇA BRASILIANA - PRETA](https://dendezeiro.com.br/products/calca-brasiliana-preta) | preto | jeans/denim | R$ 470,00 | PP, P, M, G, GG, EGG, G1, G2, G3 |
+| dendezeiro | [Calça legendary jeans](https://dendezeiro.com.br/products/calca-legendary-jeans) | azul | jeans/denim | R$ 500,00 | PP, P, M, G, GG, EGG |
+| dendezeiro | [Calça Duck Jeans](https://dendezeiro.com.br/products/calca-duckjeans) | azul | jeans/denim | R$ 750,00 | PP, P, M, G, GG, EGG |
 | doughboy | [Calça Old Blue 14 Oz - Blue Jeans](https://www.doughboy.com.br/calca-old-blue-14-oz-blue-jeans) | azul | jeans/denim 14 oz | R$ 323,00 | em estoque |
 | FAS | [Calça Lord - Bleu](https://www.fasclothing.com.br/products/calca-lord-bleu) | azul |  | R$ 358,00 | P, M, G, GG |
 | FAS | [Calça Lord - Blck](https://www.fasclothing.com.br/products/calca-lord-blck) | preto |  | R$ 358,00 | P, M, G, GG |
@@ -1096,25 +1137,28 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 
 | Marca | Loja | Instagram | Origem | Calças | Disponíveis | Bootcut/flare |
 |---|---|---|---|---|---|---|
-| hardjeanssanto | [hardjeanssanto.com](https://hardjeanssanto.com) |  | fora do diretório | 14 | 10 | 5 |
+| hardjeanssanto | [hardjeanssanto.com](https://hardjeanssanto.com) |  | lista manual/editorial | 14 | 10 | 5 |
 | Dust | [thedustcompany.com.br](https://thedustcompany.com.br) | [link](https://www.instagram.com/thedustcompany/) | Brazil Made It | 7 | 7 | 5 |
-| mondepars | [mondepars.com](https://mondepars.com) |  | fora do diretório | 41 | 26 | 4 |
-| jeandarrot | [jeandarrot.com.br](https://jeandarrot.com.br) |  | fora do diretório | 4 | 4 | 4 |
+| mondepars | [mondepars.com](https://mondepars.com) |  | lista manual/editorial | 41 | 26 | 4 |
+| jeandarrot | [jeandarrot.com.br](https://jeandarrot.com.br) |  | lista manual/editorial | 4 | 4 | 4 |
 | Cruelty | [cruelty.com.br](https://cruelty.com.br) | [link](https://www.instagram.com/ewcruel/) | Brazil Made It | 4 | 0 | 4 |
 | 2variant | [twovariant.com](https://twovariant.com) | [link](https://www.instagram.com/twovariant/) | Brazil Made It | 61 | 27 | 3 |
 | Egho Studios | [egho.com.br](https://egho.com.br) | [link](https://www.instagram.com/eghostudios/) | Brazil Made It | 5 | 5 | 3 |
 | Singa | [singapurastore.com](https://singapurastore.com) | [link](https://www.instagram.com/singa.co/) | Brazil Made It | 19 | 5 | 3 |
 | Kardigan Studios | [kardiganstudios.net](https://kardiganstudios.net) | [link](https://www.instagram.com/kardiganstudios/) | Brazil Made It | 5 | 4 | 3 |
-| studiosecta | [studiosecta.com.br](https://studiosecta.com.br) |  | fora do diretório | 3 | 2 | 3 |
+| studiosecta | [studiosecta.com.br](https://studiosecta.com.br) |  | lista manual/editorial | 3 | 2 | 3 |
 | Quadro Creations | [quadrocreations.com](https://quadrocreations.com) | [link](https://www.instagram.com/quadrocreations/) | Brazil Made It | 22 | 7 | 2 |
-| amnidevt | [amnidevt.com](https://amnidevt.com) |  | fora do diretório | 5 | 5 | 2 |
-| doughboy | [doughboy.com.br](https://doughboy.com.br) |  | fora do diretório | 4 | 4 | 2 |
+| amnidevt | [amnidevt.com](https://amnidevt.com) |  | lista manual/editorial | 5 | 5 | 2 |
+| doughboy | [doughboy.com.br](https://doughboy.com.br) |  | lista manual/editorial | 4 | 4 | 2 |
 | Kleos | [fskleos.lojavirtualnuvem.com.br](https://fskleos.lojavirtualnuvem.com.br) | [link](https://www.instagram.com/fs.kleos/) | Brazil Made It | 2 | 2 | 2 |
-| strut | [strut.com.br](https://strut.com.br) |  | fora do diretório | 49 | 48 | 1 |
-| welcomesunnygarments | [welcomesunnygarments.com.br](https://welcomesunnygarments.com.br) |  | fora do diretório | 17 | 17 | 1 |
-| shui | [shui.com.br](https://shui.com.br) |  | fora do diretório | 4 | 3 | 1 |
+| damagewip | [damagewip.com.br](https://damagewip.com.br) |  | lista manual/editorial | 2 | 0 | 2 |
+| strut | [strut.com.br](https://strut.com.br) |  | lista manual/editorial | 49 | 48 | 1 |
+| welcomesunnygarments | [welcomesunnygarments.com.br](https://welcomesunnygarments.com.br) |  | lista manual/editorial | 17 | 17 | 1 |
+| howiseethings | [howiseethings.com.br](https://howiseethings.com.br) |  | lista manual/editorial | 9 | 9 | 1 |
+| shui | [shui.com.br](https://shui.com.br) |  | lista manual/editorial | 4 | 3 | 1 |
 | Atelier Aevus | [atelieraevus.com.br](https://atelieraevus.com.br) | [link](https://www.instagram.com/atelieraevus/) | Brazil Made It | 6 | 2 | 1 |
 | Hanssy | [hanssyclothing.com.br](https://hanssyclothing.com.br) | [link](https://www.instagram.com/hanssyclothing/) | Brazil Made It | 4 | 2 | 1 |
+| ukio | [ukio.art.br](https://ukio.art.br) |  | lista manual/editorial | 1 | 1 | 1 |
 | Cursed | [cursed.com.br](https://cursed.com.br) | [link](https://www.instagram.com/cursed.dfe/) | Brazil Made It | 1 | 0 | 1 |
 | Oribá | [oriba.com.br](https://oriba.com.br) | [link](https://www.instagram.com/oriba/) | Brazil Made It | 55 | 49 | 0 |
 | Forca Studio | [forcastudio.com.br](https://forcastudio.com.br) | [link](https://www.instagram.com/forcastudio/) | Brazil Made It | 58 | 41 | 0 |
@@ -1134,7 +1178,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Hilf Streetwear | [hilfstreetwear.com.br](https://hilfstreetwear.com.br) | [link](https://www.instagram.com/hilf.streetwear/) | Brazil Made It | 14 | 14 | 0 |
 | Approve | [justapprove.com.br](https://justapprove.com.br) | [link](https://www.instagram.com/approve/) | Brazil Made It | 28 | 13 | 0 |
 | Asteric | [asteric.com.br](https://asteric.com.br) | [link](https://www.instagram.com/useasteric/) | Brazil Made It | 17 | 13 | 0 |
-| nephew | [nephew.com.br](https://nephew.com.br) |  | fora do diretório | 13 | 13 | 0 |
+| nephew | [nephew.com.br](https://nephew.com.br) |  | lista manual/editorial | 13 | 13 | 0 |
 | Take-off | [takeoffcollection.com.br](https://takeoffcollection.com.br) | [link](https://www.instagram.com/takeoffcollection/) | Brazil Made It | 13 | 13 | 0 |
 | Folk & Fox | [folkfoxbrasil.com.br](https://folkfoxbrasil.com.br) | [link](https://www.instagram.com/folkfoxbrasil/) | Brazil Made It | 11 | 11 | 0 |
 | Pace | [pacecompany.com.br](https://pacecompany.com.br) | [link](https://www.instagram.com/pace/) | Brazil Made It | 11 | 11 | 0 |
@@ -1143,9 +1187,12 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Sopro co. | [soprocompany.com.br](https://soprocompany.com.br) | [link](https://www.instagram.com/sopro.co/) | Brazil Made It | 11 | 10 | 0 |
 | MNMAL | [mnmalsp.com](https://mnmalsp.com) | [link](https://www.instagram.com/mnmalsp/) | Brazil Made It | 9 | 9 | 0 |
 | Cipher | [cipherplague.com.br](https://cipherplague.com.br) | [link](https://www.instagram.com/cipher_plague/) | Brazil Made It | 9 | 8 | 0 |
+| dendezeiro | [dendezeiro.com.br](https://dendezeiro.com.br) |  | lista manual/editorial | 8 | 8 | 0 |
+| sardegnasartoria | [sardegnasartoria.com.br](https://sardegnasartoria.com.br) |  | lista manual/editorial | 8 | 8 | 0 |
 | Alive | [usealive.com.br](https://usealive.com.br) | [link](https://www.instagram.com/usealive.com.br/) | Brazil Made It | 7 | 7 | 0 |
 | Anty | [anty.com.br](https://anty.com.br) | [link](https://www.instagram.com/anty.brand/) | Brazil Made It | 22 | 7 | 0 |
 | Banzo | [ban-zo.com](https://ban-zo.com) | [link](https://www.instagram.com/ban__zo/) | Brazil Made It | 7 | 6 | 0 |
+| inttui | [inttui.com.br](https://inttui.com.br) |  | lista manual/editorial | 6 | 6 | 0 |
 | Mad Enlatados | [madenlatados.com.br](https://madenlatados.com.br) | [link](https://www.instagram.com/mad_enlatados/) | Brazil Made It | 6 | 6 | 0 |
 | Coroa Clothing | [coroacompany.com.br](https://coroacompany.com.br) | [link](https://www.instagram.com/coroa.clothing/) | Brazil Made It | 5 | 5 | 0 |
 | Messá | [messaoficial.com](https://messaoficial.com) | [link](https://www.instagram.com/messa.og/) | Brazil Made It | 4 | 4 | 0 |
@@ -1167,11 +1214,13 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Down Jacquards | [downjacquards.com.br](https://downjacquards.com.br) | [link](https://www.instagram.com/down.jacquards/) | Brazil Made It | 2 | 2 | 0 |
 | Each | [eachstore.com.br](https://eachstore.com.br) | [link](https://www.instagram.com/each_br/) | Brazil Made It | 2 | 2 | 0 |
 | Halt Fever | [haltfever.com.br](https://haltfever.com.br) | [link](https://www.instagram.com/haltfever/) | Brazil Made It | 3 | 2 | 0 |
+| normando | [normando.co](https://normando.co) |  | lista manual/editorial | 3 | 2 | 0 |
 | Sufgang | [sufgang.com.br](https://sufgang.com.br) | [link](https://instagram.com/sufgang) | Brazil Made It | 2 | 2 | 0 |
 | Cherry Blossom | [cherryblossom.com.br](https://cherryblossom.com.br) | [link](https://www.instagram.com/chessom_studio/) | Brazil Made It | 1 | 1 | 0 |
 | CTT Studios | [cattistudios.com.br](https://cattistudios.com.br) | [link](https://www.instagram.com/cattistudios/) | Brazil Made It | 1 | 1 | 0 |
 | Desgosto | [desgosto.com](https://desgosto.com) | [link](https://www.instagram.com/desgosto/) | Brazil Made It | 8 | 1 | 0 |
 | Dreher | [drehershop.com](https://drehershop.com) | [link](https://www.instagram.com/drehershop/) | Brazil Made It | 16 | 1 | 0 |
+| eloemcomum | [eloemcomum.com](https://eloemcomum.com) |  | lista manual/editorial | 1 | 1 | 0 |
 | Ephiphany | [ephny.com.br](https://ephny.com.br) | [link](https://www.instagram.com/_ephny/) | Brazil Made It | 1 | 1 | 0 |
 | Fdr | [fdrclothing.com](https://fdrclothing.com) | [link](https://www.instagram.com/fdrclothing/) | Brazil Made It | 1 | 1 | 0 |
 | Inverso | [useinverso.com.br](https://useinverso.com.br) | [link](https://www.instagram.com/useinverso_/) | Brazil Made It | 1 | 1 | 0 |
@@ -1186,6 +1235,7 @@ Referência (Cruelty bootcut P, peça deitada): cintura 41 · quadril 49 · comp
 | Spicebysilva | [spicebysilva.com](https://spicebysilva.com) | [link](https://www.instagram.com/spicebysilva/) | Brazil Made It | 1 | 1 | 0 |
 | The Saint Mafia | [thesaint.com.br](https://thesaint.com.br) | [link](https://instagram.com/thesaintmafia) | Brazil Made It | 1 | 1 | 0 |
 | Wanted | [wantedind.com](https://wantedind.com) | [link](https://www.instagram.com/wanted_ind/) | Brazil Made It | 1 | 1 | 0 |
+| cacete | [cacete.co](https://cacete.co) |  | lista manual/editorial | 3 | 0 | 0 |
 | L'Ordre | [leordre.com](https://leordre.com) | [link](https://www.instagram.com/leordre/) | Brazil Made It | 1 | 0 | 0 |
 | Lepre | [lepreofficial.com.br](https://lepreofficial.com.br) | [link](https://www.instagram.com/lepreofficial/) | Brazil Made It | 2 | 0 | 0 |
 | Mercê | [merceduo.com](https://merceduo.com) | [link](https://www.instagram.com/merce.duo/) | Brazil Made It | 1 | 0 | 0 |

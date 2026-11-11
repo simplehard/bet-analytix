@@ -50,6 +50,10 @@ def excluded(title, head, desc):
 
 def collect():
     brands = json.load(open(os.path.join(A.CACHE, "brands.json")))
+    _mass = os.path.join(A.CACHE, "brands_mass.json")
+    if os.path.exists(_mass):
+        _known = {b["domain"] for b in brands}
+        brands += [b for b in json.load(open(_mass)) if b["domain"] not in _known]
     insta = {}
     rows, out_count, final_hosts = [], Counter(), set()
     for b in brands:
@@ -196,7 +200,8 @@ def main():
            "|---|---|---|---|---|---|---|"]
     for m, (n, d, bf) in sorted(per.items(), key=lambda x: (-x[1][2], -x[1][1], x[0].lower())):
         ig, src, dom = insta.get(m) or ("", "", "")
-        orig = "Brazil Made It" if src == "brazilmadeit" else "fora do diretório"
+        orig = {"brazilmadeit": "Brazil Made It", "extra": "lista manual/editorial", "storecensus": "StoreCensus (Shopify BR)",
+                "crt.sh": "Nuvemshop (crt.sh)"}.get(src, src)
         md.append(f"| {esc(m)} | [{dom}](https://{dom}) | {f'[link]({ig})' if ig else ''} | {orig} | {n} | {d} | {bf} |")
     open(OUT, "w").write("\n".join(md) + "\n")
     print(len(rows), "peças;", n_stock, "disponíveis")

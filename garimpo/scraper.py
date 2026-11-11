@@ -410,7 +410,7 @@ def try_shopify(h, home_html):
 
 
 def is_nuvemshop(html):
-    return bool(re.search(r"nuvemshop|tiendanube|mitiendanube|lojavirtualnuvem", html, re.I))
+    return bool(re.search(r"nuvemshop|tiendanube|mitiendanube|lojavirtualnuvem|LS\.store|data-store=\"", html, re.I))
 
 
 def sitemap_urls(h, start_urls):

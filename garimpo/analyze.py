@@ -472,6 +472,10 @@ def rank_key(r):
 
 def main(out="resultado.xlsx"):
     brands = json.load(open(os.path.join(CACHE, "brands.json")))
+    _mass = os.path.join(CACHE, "brands_mass.json")
+    if os.path.exists(_mass):
+        _known = {b["domain"] for b in brands}
+        brands += [b for b in json.load(open(_mass)) if b["domain"] not in _known]
     cands, disc, marcas = [], [], []
     final_hosts = {}
     for b in brands:

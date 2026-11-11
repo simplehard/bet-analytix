@@ -6,3 +6,7 @@ __pycache__/
 test.xlsx
 cache/*.log
 cache/redo*.txt
+cache/mass/
+cache/thumbs/
+cache/discovered.json
+cache/brands_mass.json

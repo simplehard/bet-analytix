@@ -31,6 +31,12 @@ EXTRAS = [
     "welcomesunnygarments.com.br",
     # achadas em busca na web (fora do diretório)
     "shui.com.br", "strut.com.br", "desertdenimbrasil.com.br", "jeandarrot.com.br",
+    # bola de neve (collabs citadas em títulos de produtos)
+    "allglory.com.br", "anticool.com.br", "cyshimi.com",
+    # listas editoriais (Steal The Look, Elle, Hypebeast…) + teste de domínios por nome
+    "ukio.art.br", "bosycoys.com", "damagewip.com.br", "dengo.club", "eloemcomum.com", "ganguedocaramelo.com.br",
+    "howiseethings.com.br", "quembh.com.br", "cacete.co", "normando.co", "dendezeiro.com.br",
+    "sardegnasartoria.com.br", "kietzo.com", "inttui.com.br",
 ]
 
 
