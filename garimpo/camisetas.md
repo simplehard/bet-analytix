@@ -1,6 +1,6 @@
 # Camisetas lisas — preto lavado / carvão / chumbo, regular, comprimento 58–62 cm
 
-**140 camisetas** de 25 marcas (72 disponíveis; **0 com algum tamanho medindo 58–62 cm** de comprimento).
+**142 camisetas** de 25 marcas (73 disponíveis; **0 com algum tamanho medindo 58–62 cm** de comprimento).
 
 Critérios: camiseta lisa (sem estampa/logo grande), gola careca, sem oversized/boxy/slim/muscle/longline; cor preto lavado/desbotado → carvão/chumbo/cinza escuro → preto. "cropped" está sinalizada no caimento.
 
@@ -12,7 +12,7 @@ Ordem: disponíveis primeiro → medida no alvo (✅) → perto (≈, até 2 cm 
 |---|---|---|---|---|---|---|
 | Coroa Clothing | [Camiseta Basic Coroa](https://coroacompany.com.br/produtos/camiseta-basic-coroa-545n8/) | preto | regular | ≈ P: comp 56 · larg 24 · manga 22 | R$ 169,90 ~~R$ 189,90~~ | GG, XGG |
 
-## 3. Sem medidas publicadas (conferir com a loja) — 126
+## 3. Sem medidas publicadas (conferir com a loja) — 128
 
 | Marca | Camiseta | Cor | Caimento | Medidas (cm) | Preço | Tamanhos disp. |
 |---|---|---|---|---|---|---|
@@ -57,6 +57,7 @@ Ordem: disponíveis primeiro → medida no alvo (✅) → perto (≈, até 2 cm 
 | Acostamento | [Camiseta Casual Minimalista Masculina Acostamento Preto](https://www.acostamento.com.br/products/camiseta-casual-minimalista-masculina-acostamento-preto-1) | preto |  | sem medidas | R$ 137,90 ~~R$ 239,90~~ | P, M, GG, G1 |
 | Filadelfio | [→ camiseta essential](https://filadelfio.com.br/products/camiseta-essential) | preto |  | sem medidas | R$ 140,00 | PP, P, M, G, GG |
 | Acostamento | [Camiseta Tech Básica Essential Masculina Acostamento Preto](https://www.acostamento.com.br/products/camiseta-tech-basica-essential-masculina-acostamento-preto) | preto |  | sem medidas | R$ 143,90 ~~R$ 239,90~~ | P, M, G, GG |
+| Approve | [Camiseta Core Approve X Vasco Iii Basic Preto](https://justapprove.com.br/produtos/camiseta-core-approve-x-vasco-iii-basic-preto/) | preto |  | tabela em imagem — conferir | R$ 149,99 ~~R$ 239,99~~ | G, GG, M, P, XGG |
 | Acostamento | [Camiseta Básica Algodão Masculino Acostamento Preto](https://www.acostamento.com.br/products/camiseta-basica-algodao-masculino-acostamento-preto) | preto |  | sem medidas | R$ 159,90 ~~R$ 199,90~~ | P, M, G, GG |
 | Acostamento | [Camiseta Manga Curta Masculina Acostamento Preto](https://www.acostamento.com.br/products/camiseta-manga-curta-masculina-acostamento-preto) | preto |  | sem medidas | R$ 161,90 ~~R$ 269,90~~ | P, M, G, GG |
 | Acostamento | [Camiseta Manga Curta Masculina Acostamento Preto](https://www.acostamento.com.br/products/camiseta-manga-curta-masculina-acostamento-preto-4) | preto |  | sem medidas | R$ 167,90 ~~R$ 209,90~~ | P, M, G |
@@ -124,6 +125,7 @@ Ordem: disponíveis primeiro → medida no alvo (✅) → perto (≈, até 2 cm 
 | Levi | [Camiseta Levi's® Icon Preta Manga Curta](https://www.levi.com.br/camiseta-levis-icon-preta-manga-curta/p) | preto | regular | sem medidas | R$ 289,90 | **esgotada** |
 | Richards | [T-Shirt Mm Peixe Pontilhismo Preto](https://www.richards.com.br/produto/t-shirt-mm-peixe-pontilhismo-preto-155967) | preto |  | sem medidas | R$ 10,00 | **esgotada** |
 | Acostamento | [Camiseta New Basic Masculina Acostamento Preto](https://www.acostamento.com.br/products/camiseta-new-basic-masculina-acostamento-preto) | preto |  | sem medidas | R$ 67,90 ~~R$ 179,90~~ | **esgotada** |
+| Approve | [Camiseta Core Approve Basic Preto](https://justapprove.com.br/produtos/camiseta-core-approve-basic-preto/) | preto |  | tabela em imagem — conferir | R$ 139,99 | **esgotada** |
 | Aramis | [Camiseta Básica Manga Curta Preto](https://aramisnova.myvtex.com/camiseta-basica-manga-curta-preto-cs-12-0539-007/p) | preto |  | sem medidas | R$ 179,90 | **esgotada** |
 | Richards | [T-Shirt Pima Especial Mc Preto](https://www.richards.com.br/produto/t-shirt-pima-especial-mc-preto-160983) | preto |  | sem medidas | R$ 189,00 | **esgotada** |
 | Ellus | [T-Shirt Cotton Easa Pocket Preto](https://www.ellus.com/produto/t-shirt-cotton-easa-pocket-preto-232223) | preto |  | sem medidas | R$ 189,00 | **esgotada** |

@@ -340,8 +340,9 @@ def write_html(rows):
     with ThreadPoolExecutor(8) as ex:
         imgs = list(ex.map(embed, [r["img"] for r in rows]))
     for r, im in zip(rows, imgs):
-        r["img"] = im
-    data = [{"marca": r["marca"], "nome": r["nome"], "url": r["url"], "img": ("https:" + r["img"]) if (r["img"] or "").startswith("//") else r["img"],
+        r["thumb"] = im if (im or "").startswith("data:") else None
+        r["img"] = LH.hires(r["img"])
+    data = [{"marca": r["marca"], "nome": r["nome"], "url": r["url"], "img": r["img"], "thumb": r.get("thumb"),
              "sil": r["fit"] or "—", "grp": r["cor"], "cor": r["cor"], "tecido": " · ".join(x for x in (r["medida"], r["gramatura"]) if x),
              "preco": r["preco"], "de": r["de"], "disp": r["disp"], "in_stock": r["in_stock"],
              "mrank": r["mrank"], "prio": r["prio"]} for r in rows]

@@ -3,6 +3,7 @@
 Uso: python lista_html.py
 """
 import json
+import re
 import os
 
 import lista_md as L
@@ -97,7 +98,8 @@ const PAGE = 120;
 function card(r) {
   const dots = r.cor.split(", ").map(c => COLORS[c] ? `<span class="dot" style="background:${COLORS[c]}"></span>` : "").join("");
   const silTag = r.sil === "bootcut/flare" ? "bootcut/flare" : (r.sil === "reta/slim" ? "reta/slim" : "");
-  const img = r.img ? `style="background-image:url('${esc(r.img)}')"` : "";
+  const layers = [r.img, r.thumb].filter(Boolean).map(u => `url('${esc(u)}')`).join(",");
+  const img = layers ? `style="background-image:${layers}"` : "";
   return `<a class="card" href="${esc(r.url)}" target="_blank" rel="noopener">
     <div class="img" ${img}>${silTag ? `<span class="tag">${silTag}</span>` : ""}${r.in_stock ? "" : '<span class="out">esgotada</span>'}</div>
     <div class="body">
@@ -143,13 +145,26 @@ apply();
 """
 
 
+def hires(url, w=640):
+    """Pede à CDN da loja uma versão ~640 px da foto (Shopify e Nuvemshop aceitam tamanho na URL)."""
+    if not url:
+        return url
+    if url.startswith("//"):
+        url = "https:" + url
+    if "cdn.shopify.com" in url or "/cdn/shop/" in url:
+        url = re.sub(r"([?&])width=\d+", "", url).rstrip("?&")
+        return url + ("&" if "?" in url else "?") + f"width={w}"
+    if re.search(r"mitiendanube|nuvemshop|cloudfront\.net/stores", url):
+        return re.sub(r"-\d+-\d+\.(webp|jpe?g|png)", rf"-{w}-0.\1", url)
+    return url
+
+
 def main():
     rows, out_count, _ = L.collect()
     data = [{k: r[k] for k in ("marca", "nome", "url", "sil", "grp", "cor", "tecido", "preco", "de", "disp",
                                "in_stock", "img")} for r in rows]
     for d in data:
-        if d["img"] and d["img"].startswith("//"):
-            d["img"] = "https:" + d["img"]
+        d["img"] = hires(d["img"])
     n_stock = sum(r["in_stock"] for r in rows)
     sub = (f"{len(rows)} peças ({n_stock} disponíveis) de {len({r['marca'] for r in rows})} marcas — "
            f"Brazil Made It + lojas extras. Fora: baggy, wide, cargo, jogger, moletom, feminina etc. "

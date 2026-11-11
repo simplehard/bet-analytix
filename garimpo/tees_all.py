@@ -185,7 +185,8 @@ def write_html(rows, embed=True):
         imgs = [r["img"] for r in rows]
     data = []
     for r, im in zip(rows, imgs):
-        data.append({"marca": r["marca"], "nome": r["nome"], "url": r["url"], "img": im, "sil": r["fit"],
+        data.append({"marca": r["marca"], "nome": r["nome"], "url": r["url"], "img": LH.hires(r["img"]),
+                     "thumb": im if (im or "").startswith("data:") else None, "sil": r["fit"],
                      "grp": r["grupo"], "est": r["est"], "cor": r["cor"],
                      "tecido": " · ".join(x for x in (r["est"], r["medida"], r["gram"],
                                                        "manga longa" if r["manga"] == "manga longa" else "") if x),
