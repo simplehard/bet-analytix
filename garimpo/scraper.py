@@ -116,7 +116,7 @@ class Http:
             raise Offline(f"HTTP {r.status_code}")
         if r.status_code == 404 and allow_404:
             return None
-        if r.status_code != 200:
+        if r.status_code not in (200, 206):
             return None
         return r
 
