@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "IG Seguindo & Em Comum",
+  "version": "1.0.0",
+  "description": "Lista quem uma conta segue (do mais recente ao mais antigo) e mostra os perfis em comum entre duas contas, usando a sua sessão do Instagram.",
+  "permissions": ["storage", "scripting", "unlimitedStorage"],
+  "host_permissions": ["https://www.instagram.com/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "IG Seguindo & Em Comum" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.instagram.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
