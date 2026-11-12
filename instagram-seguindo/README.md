@@ -5,9 +5,11 @@ funciona com contas privadas **que você segue**. Nada sai do seu navegador: nã
 servidor, e os dados ficam só no `chrome.storage` local da extensão.
 
 ## Funções
-- **Lista**: puxa o "Seguindo" (ou "Seguidores") de um perfil, do follow **mais recente
-  para o mais antigo** (#1 = quem a conta seguiu por último). Filtro, exportação CSV/JSON
-  e "copiar @".
+- **Lista**: puxa o "Seguindo" (ou "Seguidores") de um perfil, com filtro, exportação
+  CSV/JSON e "copiar @".
+- **Novos / deixaram de seguir**: cada busca fica guardada. Buscando a mesma conta de novo
+  (com "ignorar cache"), a extensão mostra quem **entrou** e quem **saiu** desde a busca
+  anterior, e pode ordenar com os novos no topo.
 - **Em comum**: compara duas contas e mostra quem **as duas seguem** (ou os seguidores
   em comum). O resultado segue a ordem da conta A.
 
@@ -38,9 +40,16 @@ Dá para mudar os valores na aba **Ajustes**, mas diminuir as esperas aumenta o 
 - Automatizar coleta vai contra os Termos do Instagram. Os limites acima reduzem o
   risco, mas não o zeram — o pior caso comum é um bloqueio temporário de ações. Use com
   moderação (ex.: evite várias contas grandes no mesmo dia).
-- O Instagram não informa a **data** de cada follow, só a ordem. A ordem "mais recente
-  primeiro" é a que o próprio Instagram entrega; a extensão pede explicitamente
-  `date_followed_latest` e, se não aceito, usa a ordem padrão (que também é por recência).
+- **Ordem "mais recente primeiro" — só é garantida na SUA conta.** O Instagram não
+  expõe a data de cada follow. Na sua própria lista "Seguindo", a extensão pede
+  `order=date_followed_latest` (o mesmo "Data em que seguiu: mais recente" do app) e a
+  ordem é cronológica de verdade. Para **outras contas**, o Instagram ignora esse pedido
+  e devolve uma ordem **personalizada para quem está vendo** (muda entre pessoas e até
+  entre buscas). Não existe hoje, pelo site ou app, um jeito de pedir a lista de terceiros
+  em ordem cronológica. Por isso, para saber quem alguém seguiu recentemente, use a
+  comparação entre buscas: busque hoje e de novo daqui a alguns dias, e os novos aparecem
+  marcados. Fontes: [instagrapi #2857](https://github.com/subzeroid/instagrapi/issues/2857)
+  (out/2026) e o menu "Data em que seguiu", que só aparece na sua própria lista.
 - Os totais do perfil às vezes não batem com a lista (contas desativadas/restritas são
   omitidas). Para contas que não são suas, o Instagram pode limitar a lista de *seguidores*.
 - A extensão usa endpoints internos do site; se o Instagram mudá-los, pode precisar de ajuste.

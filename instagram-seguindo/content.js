@@ -78,14 +78,15 @@
     let data = null;
     try { data = JSON.parse(text); } catch { /* resposta não-JSON */ }
     const msg = data?.message || '';
-    if (res.status === 429 || /wait a few minutes|try again later|aguarde|tente novamente/i.test(msg)) {
-      throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', res.status);
-    }
+    // Ordem importa: sem sessão o Instagram responde 401 + require_login + "Please wait a few minutes".
     if (data?.checkpoint_url || /checkpoint|challenge/i.test(msg)) {
       throw new IgError('O Instagram pediu uma verificação de segurança. Abra o app/site, resolva e espere algumas horas antes de usar de novo.', 'checkpoint', res.status);
     }
     if (res.status === 401 || data?.require_login || /login_required/i.test(msg)) {
-      throw new IgError('Sessão expirada — faça login de novo no Instagram.', 'auth', res.status);
+      throw new IgError('Sessão inválida ou expirada — recarregue o Instagram e faça login de novo.', 'auth', res.status);
+    }
+    if (res.status === 429 || /wait a few minutes|try again later|aguarde|tente novamente/i.test(msg)) {
+      throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', res.status);
     }
     if (res.status === 404) throw new IgError('Perfil não encontrado.', 'notfound', 404);
     if (!res.ok || !data || data.status === 'fail') {
@@ -94,13 +95,25 @@
     return data;
   }
 
-  async function getProfile(username) {
+  async function getProfile(username, force = false) {
     const key = 'profile:' + username;
     const c = await store.get(key);
-    if (c && Date.now() - c.at < settings.cacheHours * 3600e3) return c;
-    const d = await igGet(`/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`);
-    const u = d?.data?.user;
-    if (!u) throw new IgError(`Perfil @${username} não encontrado.`, 'notfound');
+    if (c && !force && Date.now() - c.at < settings.cacheHours * 3600e3) return c;
+    let u = null;
+    try {
+      const d = await igGet(`/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`);
+      u = d?.data?.user;
+    } catch (e) {
+      if (e.kind !== 'notfound' && e.kind !== 'http') throw e;
+    }
+    if (!u) {
+      // Plano B: busca do site, que também traz o id numérico.
+      const d = await igGet(`/web/search/topsearch/?context=blended&query=${encodeURIComponent(username)}&include_reel=false`);
+      const hit = (d.users || []).map((x) => x.user).find((x) => x?.username?.toLowerCase() === username);
+      if (!hit) throw new IgError(`Perfil @${username} não encontrado.`, 'notfound');
+      u = { id: hit.pk || hit.pk_id, username: hit.username, full_name: hit.full_name, is_private: hit.is_private,
+            followed_by_viewer: hit.friendship_status?.following ?? !hit.is_private };
+    }
     const p = {
       at: Date.now(),
       id: String(u.id),
@@ -126,9 +139,14 @@
     const key = `list:${type}:${username}`;
     const cached = await store.get(key);
     const fresh = cached?.complete && Date.now() - cached.fetchedAt < settings.cacheHours * 3600e3;
-    if (fresh && !force) { onProgress?.(cached, true); return cached; }
+    if (fresh && !force) {
+      const h = await store.get('hist:' + key.slice(5));
+      if (h) for (const u of cached.users) u.firstSeen = h.firstSeen[u.pk];
+      onProgress?.(cached, true);
+      return cached;
+    }
 
-    const profile = await getProfile(username);
+    const profile = await getProfile(username, force);
     const isSelf = profile.id === myId();
     if (profile.isPrivate && !profile.followedByViewer && !isSelf) {
       throw new IgError(`@${username} é privada e você não a segue — não dá para ver a lista.`, 'private');
@@ -138,7 +156,7 @@
     const resume = cached && !cached.complete && !force && cached.id === profile.id && cached.nextMaxId;
     const state = resume ? cached : {
       id: profile.id, username: profile.username, fullName: profile.fullName, type,
-      total, users: [], nextMaxId: null, complete: false, truncated: false, startedAt: Date.now(),
+      total, users: [], nextMaxId: null, complete: false, truncated: false, startedAt: Date.now(), isSelf,
     };
     state.total = total;
     if (resume) setStatus(`Continuando @${username} a partir de ${state.users.length} perfis já salvos…`);
@@ -193,8 +211,47 @@
     }
     state.complete = true;
     state.fetchedAt = Date.now();
+    // Cronológica de verdade só quando é a SUA lista "seguindo" e o Instagram aceitou o parâmetro de ordem.
+    state.chronological = isSelf && type === 'following' && useOrder;
+    state.diff = await recordSnapshot(key, state);
     await store.set(key, state);
     return state;
+  }
+
+  /**
+   * Histórico por conta: guarda quando a extensão viu cada perfil pela primeira vez.
+   * Para contas de terceiros é a ÚNICA forma confiável de saber quem foi seguido recentemente,
+   * porque o Instagram entrega essas listas em ordem personalizada (não cronológica).
+   */
+  async function recordSnapshot(key, state) {
+    const hk = 'hist:' + key.slice(5);
+    const h = (await store.get(hk)) || { firstSeen: {}, snapshots: [], lastPks: null };
+    const now = state.fetchedAt;
+    const baseline = !h.lastPks;
+    const prev = new Set(h.lastPks || []);
+    const curr = new Set(state.users.map((u) => u.pk));
+    const coverage = state.total ? state.users.length / state.total : 1;
+    const added = [], removed = [];
+    for (const u of state.users) {
+      if (!(u.pk in h.firstSeen)) h.firstSeen[u.pk] = baseline ? 0 : now; // 0 = já estava na 1ª busca
+      if (!baseline && !prev.has(u.pk)) added.push(u.pk);
+    }
+    if (!baseline) for (const pk of prev) if (!curr.has(pk)) removed.push(pk);
+    const prevSnap = h.snapshots[h.snapshots.length - 1] || null;
+    h.removedInfo = h.removedInfo || {};
+    for (const pk of removed) if (h.lastUsers?.[pk]) h.removedInfo[pk] = { ...h.lastUsers[pk], removedAt: now };
+    h.lastUsers = Object.fromEntries(state.users.map((u) => [u.pk, { username: u.username, fullName: u.fullName }]));
+    h.lastPks = [...curr];
+    h.snapshots.push({ at: now, count: curr.size, total: state.total, coverage });
+    h.snapshots = h.snapshots.slice(-50);
+    await store.set(hk, h);
+    for (const u of state.users) u.firstSeen = h.firstSeen[u.pk];
+    return {
+      baseline, since: prevSnap?.at || null, added, removed,
+      removedUsers: removed.map((pk) => ({ pk, ...(h.removedInfo[pk] || { username: '?' }) })),
+      reliable: coverage >= 0.97 && (!prevSnap || prevSnap.coverage >= 0.97),
+      coverage,
+    };
   }
 
   // ---------- exportação ----------
@@ -253,6 +310,7 @@
     .u a { color: #111; text-decoration: none; font-weight: 600; }
     .u small { color: #888; display: block; font-weight: 400; }
     .muted { color: #888; font-size: 11px; }
+    .new { background: #e7f3ff; color: #0064c8; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 4px; }
     label { display: flex; align-items: center; gap: 4px; }
     .grid { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; }
   `;
@@ -274,7 +332,15 @@
           <span style="flex:1"></span>
           <button class="b" id="go1">Buscar</button>
         </div>
-        <div class="muted">"Seguindo" vem do follow mais recente para o mais antigo (#1 = seguiu por último).</div>
+        <div class="row"><span>Mostrar:</span><select id="view1" style="flex:1">
+          <option value="ig">Ordem do Instagram</option>
+          <option value="new">Novos primeiro (detectados entre buscas)</option>
+          <option value="added">Só os novos desde a busca anterior</option>
+          <option value="removed">Deixaram de seguir desde a busca anterior</option>
+        </select></div>
+        <div class="muted" id="orderNote">Na <b>sua</b> conta, "Seguindo" vem em ordem cronológica real (mais recente primeiro).
+          Em contas de <b>outras pessoas</b> o Instagram entrega uma ordem personalizada, <b>não</b> cronológica —
+          para saber quem ela seguiu recentemente, busque de novo depois de alguns dias: a extensão marca os novos.</div>
       </div>
 
       <div class="tab" id="t2">
@@ -334,6 +400,30 @@
     $('usage').textContent = `Hoje: ${u?.date === today() ? u.requests : 0} de ${settings.dailyRequestCap} requisições usadas.`;
   }
 
+  let lastState = null;
+  const fmtDate = (t) => new Date(t).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+
+  function applyView() {
+    const st = lastState;
+    if (!st) return;
+    const v = $('view1').value;
+    const base = `@${st.username} — ${TYPE_LABEL[st.type]}`;
+    const name = `${st.username}_${TYPE_LABEL[st.type]}`;
+    const orderTxt = st.chronological ? 'cronológica (mais recente primeiro)' : 'personalizada do Instagram (não cronológica)';
+    const d = st.diff;
+    if (v === 'ig') return showResult(`${base}: ${st.users.length}${st.total ? ' de ' + st.total : ''} · ordem ${orderTxt}`, st.users, name);
+    if (v === 'new') {
+      const list = st.users.map((u, i) => [u, i]).sort((a, b) => (b[0].firstSeen || 0) - (a[0].firstSeen || 0) || a[1] - b[1]).map((x) => x[0]);
+      return showResult(`${base}: novos detectados no topo`, list, name + '_novos_primeiro');
+    }
+    if (!d || d.baseline) return showResult('Primeira busca desta conta — ainda não há com o que comparar.', [], name);
+    if (v === 'added') {
+      const set = new Set(d.added);
+      return showResult(`${d.added.length} novos desde ${fmtDate(d.since)}`, st.users.filter((u) => set.has(u.pk)), name + '_novos');
+    }
+    showResult(`${d.removed.length} saíram da lista desde ${fmtDate(d.since)}`, d.removedUsers.map((u) => ({ pic: '', isPrivate: false, isVerified: false, fullName: '', ...u })), name + '_removidos');
+  }
+
   function renderList() {
     const f = $('filter').value.trim().toLowerCase();
     const rows = [];
@@ -343,6 +433,7 @@
       rows.push(`<div class="u"><span class="n">#${i + 1}</span>
         <img loading="lazy" referrerpolicy="no-referrer" src="${esc(u.pic)}" alt="">
         <div><a href="https://www.instagram.com/${esc(u.username)}/" target="_blank">@${esc(u.username)}${u.isVerified ? ' ✔' : ''}${u.isPrivate ? ' 🔒' : ''}</a>
+        ${u.firstSeen ? `<span class="new">novo · ${fmtDate(u.firstSeen)}</span>` : ''}
         <small>${esc(u.fullName)}</small></div></div>`);
     });
     $('list').innerHTML = rows.join('') || '<div class="muted" style="padding:8px 0">Nada para mostrar.</div>';
@@ -374,6 +465,7 @@
 
   const progressFor = (label) => (state, fromCache) => {
     setBar(state.users.length, state.total);
+    if (state.complete) { lastState = state; return applyView(); }
     showResult(`${label}: ${state.users.length}${state.total ? ' de ' + state.total : ''}`, state.users, `${state.username}_${TYPE_LABEL[state.type]}`);
     if (fromCache) setStatus(`Do cache (${new Date(state.fetchedAt).toLocaleString()}). Marque "ignorar cache" para atualizar.`);
   };
@@ -385,9 +477,14 @@
     await runJob(async () => {
       setStatus(`Buscando ${TYPE_LABEL[type]} de @${u}…`);
       const st = await fetchList(u, type, { force: $('force1').checked, onProgress: progressFor(`@${u} — ${TYPE_LABEL[type]}`) });
-      progressFor(`@${u} — ${TYPE_LABEL[type]}`)(st, false);
-      setStatus(`Pronto: ${st.users.length} perfis${st.truncated ? ` (parou no limite de ${settings.maxUsers})` : ''}.` +
-        (st.total && st.users.length < st.total && !st.truncated ? ' O Instagram pode ocultar alguns perfis (contas desativadas/restritas).' : ''));
+      lastState = st;
+      applyView();
+      const d = st.diff;
+      let msg = `Pronto: ${st.users.length} perfis${st.truncated ? ` (parou no limite de ${settings.maxUsers})` : ''}.`;
+      if (st.total && st.users.length < st.total * 0.97 && !st.truncated) msg += ` Vieram ${Math.round((100 * st.users.length) / st.total)}% do total do perfil — o Instagram omite contas desativadas/restritas e às vezes corta listas de terceiros.`;
+      if (d?.baseline) msg += ' Primeira busca desta conta: guardei como referência. Na próxima, mostro quem entrou e quem saiu.';
+      else if (d) msg += ` Desde ${fmtDate(d.since)}: +${d.added.length} novos, −${d.removed.length} saíram.` + (d.reliable ? '' : ' (Atenção: uma das buscas veio incompleta, então pode haver falsos novos/removidos.)');
+      setStatus(msg);
     });
   }
 
@@ -437,6 +534,7 @@
     $('go2').onclick = doCompare;
     $('stop').onclick = () => { if (job) { job.cancelled = true; setStatus('Parando…'); } };
     $('filter').oninput = renderList;
+    $('view1').onchange = applyView;
     $('csv').onclick = () => current.list.length && exportCSV(current.name, current.list);
     $('json').onclick = () => current.list.length && exportJSON(current.name, current.list);
     $('copy').onclick = async () => {
@@ -462,7 +560,7 @@
       const all = await chrome.storage.local.get(null);
       const keys = Object.keys(all).filter((k) => k.startsWith('list:') || k.startsWith('profile:'));
       await chrome.storage.local.remove(keys);
-      setStatus(`Cache limpo (${keys.length} itens).`);
+      setStatus(`Cache limpo (${keys.length} itens). O histórico de novos/removidos foi mantido.`);
     };
 
     // Preenche com o perfil aberto na aba, se houver.
