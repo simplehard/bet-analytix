@@ -1,17 +1,42 @@
 {
   "manifest_version": 3,
   "name": "IG Seguindo & Em Comum",
-  "version": "1.0.0",
-  "description": "Lista quem uma conta segue (do mais recente ao mais antigo) e mostra os perfis em comum entre duas contas, usando a sua sessão do Instagram.",
-  "permissions": ["storage", "scripting", "unlimitedStorage"],
-  "host_permissions": ["https://www.instagram.com/*"],
-  "background": { "service_worker": "background.js" },
-  "action": { "default_title": "IG Seguindo & Em Comum" },
+  "version": "1.2.0",
+  "description": "Lista quem uma conta segue, mostra perfis em comum entre duas contas e avisa quando uma conta monitorada segue alguém — usando a sua sessão do Instagram.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "unlimitedStorage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://www.instagram.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "IG Seguindo & Em Comum",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "content_scripts": [
     {
-      "matches": ["https://www.instagram.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://www.instagram.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

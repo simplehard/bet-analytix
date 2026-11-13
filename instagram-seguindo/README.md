@@ -10,6 +10,13 @@ servidor, e os dados ficam só no `chrome.storage` local da extensão.
 - **Novos / deixaram de seguir**: cada busca fica guardada. Buscando a mesma conta de novo
   (com "ignorar cache"), a extensão mostra quem **entrou** e quem **saiu** desde a busca
   anterior, e pode ordenar com os novos no topo.
+- **Monitorar** (para ver quando alguém segue uma pessoa nova): adicione até 10 contas. A cada
+  ~6 h a extensão lê só o perfil (1 requisição) e compara o número de "seguindo". Se mudou,
+  baixa a lista e registra **"@fulana seguiu @ciclano — entre 13/11 08:00 e 13/11 14:00"**.
+  Também mostra o número de novos no ícone e uma notificação do sistema. A cada 3 dias a lista é baixada
+  mesmo sem mudança no número (pega o caso "seguiu um e deixou de seguir outro").
+  Precisa de **uma aba do Instagram aberta** (pode fixar a aba). Sem aba aberta, nada roda; na
+  próxima vez que abrir, as verificações atrasadas são feitas.
 - **Em comum**: compara duas contas e mostra quem **as duas seguem** (ou os seguidores
   em comum). O resultado segue a ordem da conta A.
 
@@ -27,6 +34,8 @@ servidor, e os dados ficam só no `chrome.storage` local da extensão.
 | Teto diário de requisições (somando tudo) | 300 (~3.500 perfis/dia) |
 | Teto de perfis por lista | 5.000 |
 | Cache de listas completas | 24 h (comparar de novo não refaz a busca) |
+| Monitor: verificação do perfil | a cada 6 h (±15%), 1 requisição por conta |
+| Monitor: lista completa | só quando o número muda, ou a cada 3 dias |
 
 - Se o Instagram responder "aguarde" (429), a extensão pausa 10 min, depois 20 min,
   e então para — salvando o progresso. Buscar de novo **continua de onde parou**.
@@ -46,10 +55,16 @@ Dá para mudar os valores na aba **Ajustes**, mas diminuir as esperas aumenta o 
   ordem é cronológica de verdade. Para **outras contas**, o Instagram ignora esse pedido
   e devolve uma ordem **personalizada para quem está vendo** (muda entre pessoas e até
   entre buscas). Não existe hoje, pelo site ou app, um jeito de pedir a lista de terceiros
-  em ordem cronológica. Por isso, para saber quem alguém seguiu recentemente, use a
-  comparação entre buscas: busque hoje e de novo daqui a alguns dias, e os novos aparecem
-  marcados. Fontes: [instagrapi #2857](https://github.com/subzeroid/instagrapi/issues/2857)
+  em ordem cronológica. Por isso, para saber quando alguém segue uma conta nova, use a aba
+  **Monitorar**: a extensão percebe o follow comparando as listas, com precisão igual ao
+  intervalo entre verificações. Follows anteriores à primeira verificação não têm como ser datados. Fontes: [instagrapi #2857](https://github.com/subzeroid/instagrapi/issues/2857)
   (out/2026) e o menu "Data em que seguiu", que só aparece na sua própria lista.
 - Os totais do perfil às vezes não batem com a lista (contas desativadas/restritas são
   omitidas). Para contas que não são suas, o Instagram pode limitar a lista de *seguidores*.
 - A extensão usa endpoints internos do site; se o Instagram mudá-los, pode precisar de ajuste.
+
+## Custo do monitor (para não estourar o limite diário)
+Conta que segue ~1.000 perfis: cada verificação sem mudança custa 1 requisição; cada mudança
+custa ~85 (a lista inteira). Com o teto de 300 por dia, dá para acompanhar várias contas
+tranquilamente, desde que elas não sigam gente nova toda hora. Contas que seguem muitos milhares
+de perfis consomem bem mais.

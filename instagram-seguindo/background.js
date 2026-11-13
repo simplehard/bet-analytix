@@ -24,3 +24,30 @@ chrome.tabs.onUpdated.addListener(async (tabId, info) => {
   await chrome.storage.session.remove('openPanelOnTab');
   chrome.tabs.sendMessage(tabId, { type: 'open' }).catch(() => {});
 });
+
+// Mensagens do monitor (vindas do content script).
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === 'badge') {
+    chrome.action.setBadgeBackgroundColor({ color: '#e1306c' });
+    chrome.action.setBadgeText({ text: msg.count ? String(msg.count) : '' });
+  }
+  if (msg?.type === 'notify') {
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+      title: msg.title,
+      message: msg.message,
+      priority: 1,
+    });
+  }
+});
+
+// Clique na notificação: abre a aba "Monitorar" no Instagram.
+chrome.notifications.onClicked.addListener(async (id) => {
+  chrome.notifications.clear(id);
+  const [tab] = await chrome.tabs.query({ url: 'https://www.instagram.com/*' });
+  if (!tab) return chrome.tabs.create({ url: 'https://www.instagram.com/' });
+  await chrome.tabs.update(tab.id, { active: true });
+  await chrome.windows.update(tab.windowId, { focused: true });
+  chrome.tabs.sendMessage(tab.id, { type: 'openMonitor' }).catch(() => {});
+});

@@ -15,6 +15,9 @@
     dailyRequestCap: 300, // teto de requisições por dia (todas as buscas somadas)
     maxUsers: 5000,       // teto de perfis por lista
     cacheHours: 24,       // reaproveita listas completas por este tempo
+    monitorHours: 6,      // monitor: a cada quantas horas confere cada conta (1 requisição)
+    fullRecheckDays: 3,   // monitor: rebaixa a lista mesmo sem mudança no contador (pega troca 1-por-1)
+    maxWatched: 10,       // monitor: máximo de contas monitoradas
   };
   let settings = { ...DEFAULTS };
   let job = null; // { cancelled: boolean }
@@ -35,13 +38,26 @@
     constructor(msg, kind, status) { super(msg); this.kind = kind; this.status = status; }
   }
 
-  async function sleep(ms, label) {
-    const end = Date.now() + ms;
-    while (Date.now() < end) {
-      if (job?.cancelled) throw new IgError('Interrompido.', 'cancel');
-      if (label) setStatus(`${label} — ${Math.ceil((end - Date.now()) / 1000)}s`);
-      await new Promise((r) => setTimeout(r, Math.min(500, end - Date.now())));
-    }
+  // Um único timer por espera (abas em segundo plano limitam timers encadeados); "Parar" acorda na hora.
+  function sleep(ms, label) {
+    return new Promise((resolve, reject) => {
+      const end = Date.now() + ms;
+      const j = job;
+      let iv = null;
+      const done = (err) => {
+        clearTimeout(t); clearInterval(iv);
+        if (j) j.wake = null;
+        err ? reject(err) : resolve();
+      };
+      const t = setTimeout(() => done(), ms);
+      if (j) j.wake = () => done(new IgError('Interrompido.', 'cancel'));
+      if (j?.cancelled) return done(new IgError('Interrompido.', 'cancel'));
+      if (label && sh) {
+        const tick = () => setStatus(`${label} — ${Math.max(0, Math.ceil((end - Date.now()) / 1000))}s`);
+        tick();
+        iv = setInterval(tick, 1000);
+      }
+    });
   }
 
   async function countRequest() {
@@ -135,7 +151,7 @@
    * Instagram entrega — para "seguindo", do follow mais recente ao mais antigo.
    * Salva o progresso a cada página: se parar no meio, a próxima busca continua de onde parou.
    */
-  async function fetchList(username, type, { force = false, onProgress } = {}) {
+  async function fetchList(username, type, { force = false, onProgress, profile: given } = {}) {
     const key = `list:${type}:${username}`;
     const cached = await store.get(key);
     const fresh = cached?.complete && Date.now() - cached.fetchedAt < settings.cacheHours * 3600e3;
@@ -146,7 +162,7 @@
       return cached;
     }
 
-    const profile = await getProfile(username, force);
+    const profile = given || (await getProfile(username, force));
     const isSelf = profile.id === myId();
     if (profile.isPrivate && !profile.followedByViewer && !isSelf) {
       throw new IgError(`@${username} é privada e você não a segue — não dá para ver a lista.`, 'private');
@@ -254,6 +270,110 @@
     };
   }
 
+  // ---------- monitor: detectar quando a pessoa segue alguém ----------
+  // Estratégia barata: a cada `monitorHours` lê só o perfil (1 requisição) e compara o número
+  // de "seguindo". Se mudou (ou passou `fullRecheckDays`), baixa a lista e compara com a anterior.
+  // Quem aparece de novo foi seguido entre a verificação anterior e esta.
+  const getWatch = async () => (await store.get('watch')) || {};
+
+  async function notifyBackground() {
+    const w = await getWatch();
+    const unseen = Object.values(w).reduce((n, x) => n + (x.unseen || 0), 0);
+    chrome.runtime.sendMessage({ type: 'badge', count: unseen }).catch?.(() => {});
+    return unseen;
+  }
+
+  async function checkAccount(username, { forceFull = false } = {}) {
+    const w = await getWatch();
+    const x = w[username];
+    if (!x) return [];
+    const now = Date.now();
+    const p = await getProfile(username, true);
+    if (p.isPrivate && !p.followedByViewer && p.id !== myId()) {
+      throw new IgError(`@${username} é privada e você não a segue.`, 'private');
+    }
+    const changed = x.lastCount != null && p.followingCount !== x.lastCount;
+    const stale = !x.lastFull || now - x.lastFull > settings.fullRecheckDays * 86400e3;
+    const events = [];
+    if (forceFull || changed || stale) {
+      setStatus(`Monitor: @${username} ${changed ? `mudou de ${x.lastCount} para ${p.followingCount} seguindo — ` : ''}baixando a lista…`);
+      const st = await fetchList(username, 'following', { force: true, profile: p });
+      const d = st.diff;
+      if (!d.baseline) {
+        // Janela: da última vez em que o contador ainda estava igual até agora.
+        const from = Math.max(d.since || 0, changed ? x.lastCheck || 0 : 0) || d.since;
+        const byPk = Object.fromEntries(st.users.map((u) => [u.pk, u]));
+        for (const pk of d.added) {
+          const u = byPk[pk];
+          events.push({ kind: 'follow', who: username, pk, username: u.username, fullName: u.fullName, pic: u.pic, from, to: now, unsure: !d.reliable });
+        }
+        for (const u of d.removedUsers) {
+          events.push({ kind: 'unfollow', who: username, pk: u.pk, username: u.username, fullName: u.fullName || '', pic: '', from, to: now, unsure: !d.reliable });
+        }
+      }
+      x.lastFull = now;
+    }
+    const w2 = await getWatch(); // pode ter mudado durante a busca
+    if (!w2[username]) return events;
+    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: p.followingCount, id: p.id });
+    w2[username].events = [...events, ...(w2[username].events || [])].slice(0, 500);
+    w2[username].unseen = (w2[username].unseen || 0) + events.filter((e) => e.kind === 'follow').length;
+    await store.set('watch', w2);
+    return events;
+  }
+
+  async function acquireLock() {
+    const l = await store.get('monitorLock');
+    if (l && Date.now() - l.at < 30 * 60e3 && l.owner !== tabToken) return false;
+    await store.set('monitorLock', { at: Date.now(), owner: tabToken });
+    return true;
+  }
+  const tabToken = Math.random().toString(36).slice(2);
+  const releaseLock = async () => { const l = await store.get('monitorLock'); if (l?.owner === tabToken) await chrome.storage.local.remove('monitorLock'); };
+
+  /** Roda as contas monitoradas que estão vencidas. `only` = forçar uma conta (botão "verificar agora"). */
+  async function monitorTick(only = null) {
+    if (job || !myId()) return;
+    const w = await getWatch();
+    const now = Date.now();
+    const due = only ? [only] : Object.keys(w).filter((u) => !w[u].lastCheck || now - w[u].lastCheck >= settings.monitorHours * 3600e3 * (w[u].jitter || 1));
+    if (!due.length || !(await acquireLock())) return;
+    job = { cancelled: false };
+    setBusy(true);
+    const found = [];
+    try {
+      for (const [i, u] of due.entries()) {
+        if (i) await sleep(rand(settings.minDelay, settings.maxDelay) * 1000, 'Monitor: próxima conta em');
+        try {
+          found.push(...(await checkAccount(u, { forceFull: !w[u].lastFull })));
+          const wj = await getWatch();
+          if (wj[u]) { wj[u].jitter = rand(0.85, 1.15); wj[u].lastError = null; await store.set('watch', wj); }
+        } catch (e) {
+          if (['cancel', 'rate', 'auth', 'checkpoint', 'cap'].includes(e.kind)) throw e;
+          const wj = await getWatch();
+          if (wj[u]) { wj[u].lastError = e.message; wj[u].lastCheck = Date.now(); await store.set('watch', wj); }
+        }
+      }
+      const fol = found.filter((e) => e.kind === 'follow');
+      setStatus(`Monitor: ${due.length} conta(s) verificada(s). ${fol.length ? fol.length + ' novo(s) follow(s)!' : 'Nada novo.'}`);
+      if (fol.length) {
+        chrome.runtime.sendMessage({
+          type: 'notify',
+          title: `${fol.length} novo(s) follow(s)`,
+          message: fol.slice(0, 4).map((e) => `@${e.who} seguiu @${e.username}`).join('\n') + (fol.length > 4 ? `\n+${fol.length - 4}` : ''),
+        }).catch?.(() => {});
+      }
+    } catch (e) {
+      setStatus(e.kind === 'cancel' ? 'Monitor interrompido.' : 'Monitor: ' + e.message, e.kind !== 'cancel');
+    } finally {
+      job = null;
+      setBusy(false);
+      await releaseLock();
+      await notifyBackground();
+      renderMonitor();
+    }
+  }
+
   // ---------- exportação ----------
   function download(name, content, mime) {
     const a = document.createElement('a');
@@ -310,6 +430,11 @@
     .u a { color: #111; text-decoration: none; font-weight: 600; }
     .u small { color: #888; display: block; font-weight: 400; }
     .muted { color: #888; font-size: 11px; }
+    .w { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid #f3f3f3; }
+    .w div { flex: 1; } .w small { color: #888; display: block; } .w .er { color: #c00; }
+    .w button { font: inherit; font-size: 11px; border: 0; background: #efefef; border-radius: 5px; padding: 3px 7px; cursor: pointer; }
+    .ev { padding: 5px 0; border-bottom: 1px solid #f3f3f3; } .ev small { color: #888; display: block; }
+    .ev a { color: #111; font-weight: 600; text-decoration: none; } .ev.un { opacity: .6; }
     .new { background: #e7f3ff; color: #0064c8; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 4px; }
     label { display: flex; align-items: center; gap: 4px; }
     .grid { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center; }
@@ -321,6 +446,7 @@
       <nav>
         <button data-tab="t1" class="on">Lista</button>
         <button data-tab="t2">Em comum</button>
+        <button data-tab="t4">Monitorar <span id="unseen" class="new" style="display:none"></span></button>
         <button data-tab="t3">Ajustes</button>
       </nav>
 
@@ -355,6 +481,15 @@
         <div class="muted">A ordem do resultado segue a lista da conta A (mais recente primeiro).</div>
       </div>
 
+      <div class="tab" id="t4">
+        <div class="row"><input type="text" id="uw" placeholder="@conta para monitorar"><button class="b" id="addw">Monitorar</button></div>
+        <div class="muted">Mantenha uma aba do Instagram aberta (pode fixá-la). A cada <span id="mh"></span> h a extensão confere
+          o número de "seguindo" de cada conta (1 requisição); se mudar, baixa a lista e mostra quem entrou, com o intervalo em que aconteceu.</div>
+        <div id="wlist"></div>
+        <div class="row"><b style="flex:1">Atividade</b><select id="wfilter"><option value="follow">Só follows</option><option value="all">Follows e unfollows</option></select></div>
+        <div id="feed"></div>
+      </div>
+
       <div class="tab" id="t3">
         <div class="grid">
           <span>Espera entre páginas (s), mín / máx</span><span><input type="number" id="s_minDelay" min="1" step="0.5"> <input type="number" id="s_maxDelay" min="1" step="0.5"></span>
@@ -363,6 +498,9 @@
           <span>Máx. requisições por dia</span><span><input type="number" id="s_dailyRequestCap" min="10"></span>
           <span>Máx. perfis por lista</span><span><input type="number" id="s_maxUsers" min="12"></span>
           <span>Validade do cache (horas)</span><span><input type="number" id="s_cacheHours" min="0"></span>
+          <span>Monitor: verificar a cada (horas)</span><span><input type="number" id="s_monitorHours" min="1" step="0.5"></span>
+          <span>Monitor: rebaixar lista a cada (dias)</span><span><input type="number" id="s_fullRecheckDays" min="1"></span>
+          <span>Monitor: máx. de contas</span><span><input type="number" id="s_maxWatched" min="1"></span>
         </div>
         <div class="muted" id="usage"></div>
         <div class="row"><button class="b" id="save">Salvar</button><button class="b sec" id="reset">Padrões</button><span style="flex:1"></span><button class="b sec" id="clear">Limpar cache</button></div>
@@ -445,6 +583,8 @@
   }
 
   function setBusy(b) {
+    if (!sh) return;
+    $('addw').disabled = b;
     $('go1').disabled = b; $('go2').disabled = b; $('stop').disabled = !b;
   }
 
@@ -509,6 +649,55 @@
     });
   }
 
+  const fmtDT = (t) => new Date(t).toLocaleString(undefined, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+  async function addWatch() {
+    const u = cleanUser($('uw').value);
+    if (!u) return setStatus('Digite um @usuario.', true);
+    const w = await getWatch();
+    if (w[u]) return setStatus(`@${u} já está sendo monitorada.`);
+    if (Object.keys(w).length >= settings.maxWatched) return setStatus(`Limite de ${settings.maxWatched} contas monitoradas (ver Ajustes).`, true);
+    w[u] = { addedAt: Date.now(), lastCheck: 0, lastFull: 0, lastCount: null, events: [], unseen: 0 };
+    await store.set('watch', w);
+    $('uw').value = '';
+    renderMonitor();
+    setStatus(`@${u} adicionada. Baixando a lista de referência…`);
+    monitorTick(u);
+  }
+
+  async function markSeen() {
+    const w = await getWatch();
+    for (const x of Object.values(w)) x.unseen = 0;
+    await store.set('watch', w);
+    await notifyBackground();
+    renderMonitor();
+  }
+
+  async function renderMonitor() {
+    if (!sh) return;
+    const w = await getWatch();
+    $('mh').textContent = settings.monitorHours;
+    const names = Object.keys(w);
+    $('wlist').innerHTML = names.length ? names.map((u) => {
+      const x = w[u];
+      const next = x.lastCheck ? x.lastCheck + settings.monitorHours * 3600e3 * (x.jitter || 1) : Date.now();
+      return `<div class="w"><div><b>@${esc(u)}</b>${x.unseen ? ` <span class="new">${x.unseen} novo(s)</span>` : ''}
+        <small>${x.lastCount != null ? x.lastCount + ' seguindo · ' : ''}${x.lastCheck ? 'verificada ' + fmtDT(x.lastCheck) + ' · próxima ~' + fmtDT(next) : 'aguardando 1ª verificação'}</small>
+        ${x.lastError ? `<small class="er">${esc(x.lastError)}</small>` : ''}</div>
+        <button data-act="now" data-u="${esc(u)}">Verificar agora</button><button data-act="rm" data-u="${esc(u)}">Remover</button></div>`;
+    }).join('') : '<div class="muted">Nenhuma conta monitorada.</div>';
+    const all = $('wfilter').value === 'all';
+    const evs = names.flatMap((u) => w[u].events || []).filter((e) => all || e.kind === 'follow').sort((a, b) => b.to - a.to);
+    $('feed').innerHTML = evs.length ? evs.slice(0, 300).map((e) => `<div class="ev ${e.kind === 'unfollow' ? 'un' : ''}">
+        <a href="https://www.instagram.com/${esc(e.who)}/" target="_blank">@${esc(e.who)}</a> ${e.kind === 'follow' ? 'seguiu' : 'deixou de seguir'}
+        <a href="https://www.instagram.com/${esc(e.username)}/" target="_blank">@${esc(e.username)}</a>
+        <small>entre ${fmtDT(e.from)} e ${fmtDT(e.to)}${e.unsure ? ' · incerto (lista veio incompleta)' : ''}</small></div>`).join('')
+      : '<div class="muted">Nada ainda. A 1ª verificação de cada conta só guarda a referência; os follows aparecem a partir da próxima mudança.</div>';
+    const unseen = names.reduce((n, u) => n + (w[u].unseen || 0), 0);
+    $('unseen').style.display = unseen ? '' : 'none';
+    $('unseen').textContent = unseen;
+  }
+
   const SETTING_KEYS = Object.keys(DEFAULTS).filter((k) => k !== 'pageSize');
   function fillSettings() { for (const k of SETTING_KEYS) $('s_' + k).value = settings[k]; }
 
@@ -532,7 +721,16 @@
     $('close').onclick = () => (host.style.display = 'none');
     $('go1').onclick = doList;
     $('go2').onclick = doCompare;
-    $('stop').onclick = () => { if (job) { job.cancelled = true; setStatus('Parando…'); } };
+    $('stop').onclick = () => { if (job) { job.cancelled = true; job.wake?.(); setStatus('Parando…'); } };
+    $('addw').onclick = addWatch;
+    $('wfilter').onchange = renderMonitor;
+    $('wlist').onclick = async (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      const u = b.dataset.u;
+      if (b.dataset.act === 'rm') { const w = await getWatch(); delete w[u]; await store.set('watch', w); await notifyBackground(); renderMonitor(); }
+      if (b.dataset.act === 'now') monitorTick(u);
+    };
+    sh.querySelector('nav button[data-tab=t4]').addEventListener('click', markSeen);
     $('filter').oninput = renderList;
     $('view1').onchange = applyView;
     $('csv').onclick = () => current.list.length && exportCSV(current.name, current.list);
@@ -550,6 +748,7 @@
       s.burstPages = Math.max(1, Math.round(s.burstPages));
       s.burstPauseMin = Math.max(5, s.burstPauseMin); s.burstPauseMax = Math.max(s.burstPauseMin, s.burstPauseMax);
       s.dailyRequestCap = Math.max(1, Math.round(s.dailyRequestCap)); s.maxUsers = Math.max(12, Math.round(s.maxUsers));
+      s.monitorHours = Math.max(1, s.monitorHours); s.fullRecheckDays = Math.max(1, s.fullRecheckDays); s.maxWatched = Math.max(1, Math.round(s.maxWatched));
       settings = s;
       await store.set('settings', s);
       fillSettings(); refreshUsage(await store.get('usage'));
@@ -569,6 +768,7 @@
 
     fillSettings();
     store.get('usage').then(refreshUsage);
+    renderMonitor();
   }
 
   async function open() {
@@ -579,7 +779,13 @@
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg?.type === 'toggle') { if (host && host.style.display !== 'none') host.style.display = 'none'; else open(); }
     if (msg?.type === 'open') open();
+    if (msg?.type === 'openMonitor') open().then(() => sh.querySelector('nav button[data-tab=t4]').click());
   });
+
+  // Agenda do monitor: roda enquanto houver uma aba do Instagram aberta (uma aba por vez, via trava).
+  setTimeout(() => monitorTick(), rand(20, 60) * 1000);
+  setInterval(() => monitorTick(), 10 * 60e3);
+  chrome.storage.onChanged.addListener((ch) => { if (ch.watch && sh && host.style.display !== 'none') renderMonitor(); });
 
   store.get('settings').then((s) => { if (s) settings = { ...DEFAULTS, ...s }; });
 })();
