@@ -6,12 +6,13 @@
 
   const APP_ID = '936619743392459'; // App ID público do Instagram Web
   const DEFAULTS = {
-    minDelay: 3,          // s entre páginas (mínimo)
-    maxDelay: 7,          // s entre páginas (máximo)
+    preset: 'equilibrado',
+    minDelay: 1.5,        // s entre páginas (mínimo)
+    maxDelay: 4,          // s entre páginas (máximo)
     pageSize: 100,        // perfis por página (outras extensões usam 100–200; cai para 12 se recusado)
-    burstPages: 8,        // a cada N páginas faz uma pausa longa
-    burstPauseMin: 30,    // s
-    burstPauseMax: 75,    // s
+    burstPages: 10,       // a cada N páginas faz uma pausa longa
+    burstPauseMin: 15,    // s
+    burstPauseMax: 35,    // s
     dailyRequestCap: 300, // teto de requisições por dia (todas as buscas somadas)
     maxUsers: 5000,       // teto de perfis por lista
     cacheHours: 24,       // reaproveita listas completas por este tempo
@@ -24,6 +25,25 @@
   const COVERAGE_OK = 0.98;  // fração do total do perfil que consideramos "lista completa"
   const COVERAGE_MIN = 0.90; // abaixo disso (e sem explicação) a busca é descartada: nada é registrado
   let settings = { ...DEFAULTS };
+  // Perfis de velocidade. O Instagram não publica limites; o próprio site carrega uma página da
+  // lista a cada ~1 s quando você rola rápido. O risco cresce mais com o VOLUME diário do que
+  // com a velocidade de uma busca isolada, por isso o teto diário continua valendo em todos.
+  const PRESETS = {
+    cauteloso:   { minDelay: 4,   maxDelay: 8, burstPages: 6,  burstPauseMin: 45, burstPauseMax: 90 },
+    equilibrado: { minDelay: 1.5, maxDelay: 4, burstPages: 10, burstPauseMin: 15, burstPauseMax: 35 },
+    rapido:      { minDelay: 0.8, maxDelay: 2, burstPages: 15, burstPauseMin: 8,  burstPauseMax: 20 },
+  };
+  // Freio automático: depois de qualquer "aguarde" do Instagram, usa o ritmo cauteloso por 24 h.
+  let slowUntil = 0;
+  function pace() {
+    if (Date.now() >= slowUntil) return settings;
+    const c = PRESETS.cauteloso;
+    return Object.fromEntries(Object.keys(c).map((k) => [k, k === 'burstPages' ? Math.min(settings[k], c[k]) : Math.max(settings[k], c[k])]));
+  }
+  async function brake() {
+    slowUntil = Date.now() + 24 * 3600e3;
+    await store.set('slowUntil', slowUntil);
+  }
   let job = null; // { cancelled: boolean }
 
   // ---------- utilidades ----------
@@ -95,6 +115,7 @@
         return await igGet(path, opts);
       } catch (e) {
         if (!['rate', 'net'].includes(e.kind)) throw e;
+        if (e.kind === 'rate' && attempt === 0) await brake();
         if (attempt >= 3) {
           if (e.kind === 'rate') await startCooldown(6, 'o Instagram pediu para esperar várias vezes seguidas');
           throw e;
@@ -336,6 +357,8 @@
     if (resume) setStatus(`Continuando @${username} a partir de ${state.users.length} perfis já salvos…`);
 
     const seen = new Set(state.users.map((u) => u.pk));
+    const hist = await store.get('hist:' + key.slice(5));
+    slowUntil = (await store.get('slowUntil')) || 0;
     let useOrder = type === 'following';
     let pageSize = (await store.get('pageSizeOK')) || settings.pageSize;
     let pages = 0, passStart = state.users.length, emptyStreak = 0;
@@ -350,6 +373,11 @@
       const coverage = total ? state.users.length / total : 1;
       const ownList = isSelf && type === 'following' && useOrder && reason === 'fim';
       const lastGainUseless = state.pass > 1 && gain === 0; // passada não achou ninguém novo: o que falta é conta desativada/oculta
+      // Já aprendemos (em buscas anteriores) que essa conta tem X contas ocultas: se a 1ª passada
+      // trouxe o mesmo tanto, não precisa repetir a lista inteira.
+      const missingNow = total ? total - state.users.length : 0;
+      const knownGap = state.pass === 1 && hist?.hiddenGap != null && missingNow <= hist.hiddenGap + 1;
+      if (knownGap) { state.passGain.push(0); return true; }
       if (coverage < COVERAGE_OK && !ownList && !lastGainUseless && state.pass < settings.maxPasses) {
         state.pass++;
         state.nextMaxId = null;
@@ -357,7 +385,7 @@
         cursors = new Set();
         emptyStreak = 0;
         await store.set(key, state);
-        await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000,
+        await sleep(rand(pace().burstPauseMin, pace().burstPauseMax) * 500,
           `Vieram ${state.users.length}/${total} — passada ${state.pass} para achar os que faltaram`);
         return false;
       }
@@ -414,10 +442,10 @@
         if (await endPass(reason)) break;
         continue;
       }
-      if (pages % settings.burstPages === 0) {
-        await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000, `Pausa longa de segurança (${state.users.length} perfis)`);
+      if (pages % pace().burstPages === 0) {
+        await sleep(rand(pace().burstPauseMin, pace().burstPauseMax) * 1000, `Pausa longa de segurança (${state.users.length} perfis)`);
       } else {
-        await sleep(rand(settings.minDelay, settings.maxDelay) * 1000, `${state.users.length}${total ? '/' + total : ''} perfis — próxima página em`);
+        await sleep(rand(pace().minDelay, pace().maxDelay) * 1000, `${state.users.length}${total ? '/' + total : ''} perfis — próxima página em`);
       }
     }
     state.complete = true;
@@ -509,7 +537,7 @@
       let canQuery = !!profile && cands.length <= 15;
       for (const pk of cands) {
         if (!canQuery || !h.lastUsers[pk]?.username) break;
-        await sleep(rand(settings.minDelay, settings.maxDelay) * 1000, `Confirmando @${h.lastUsers[pk].username} na lista`);
+        await sleep(rand(pace().minDelay, pace().maxDelay) * 1000, `Confirmando @${h.lastUsers[pk].username} na lista`);
         verdicts[pk] = await queryPresence(profile.id, state.type, h.lastUsers[pk].username, pk);
         if (verdicts[pk] === null) canQuery = false;
       }
@@ -536,6 +564,8 @@
     const cumCoverage = state.total ? keep.size / state.total : 1;
     if (cumCoverage >= COVERAGE_OK || (state.passGain || []).slice(-1)[0] === 0) h.calibrated = true;
     h.snapshots.push({ at: now, count: curr.size, total: state.total, coverage, complete, passes: state.pass || 1 });
+    // Quantas contas o total do perfil conta mas a lista nunca mostra (desativadas/ocultas).
+    if (complete && state.total != null) h.hiddenGap = Math.max(0, state.total - curr.size);
     h.snapshots = h.snapshots.slice(-50);
     await store.set(hk, h);
     for (const u of state.users) u.firstSeen = h.firstSeen[u.pk];
@@ -652,7 +682,7 @@
     const found = [];
     try {
       for (const [i, u] of due.entries()) {
-        if (i) await sleep(rand(settings.minDelay, settings.maxDelay) * 1000, 'Monitor: próxima conta em');
+        if (i) await sleep(rand(pace().minDelay, pace().maxDelay) * 1000, 'Monitor: próxima conta em');
         try {
           found.push(...(await checkAccount(u, { forceFull: !w[u].lastFull })));
           const wj = await getWatch();
@@ -800,8 +830,15 @@
       </div>
 
       <div class="tab" id="t3">
+        <div class="row"><b>Velocidade</b><select id="preset" style="flex:1">
+          <option value="cauteloso">Cautelosa — mais lenta, menor risco</option>
+          <option value="equilibrado">Equilibrada (recomendada)</option>
+          <option value="rapido">Rápida — perto do ritmo de alguém rolando a lista</option>
+          <option value="custom">Personalizada</option>
+        </select></div>
+        <div class="muted" id="eta"></div>
         <div class="grid">
-          <span>Espera entre páginas (s), mín / máx</span><span><input type="number" id="s_minDelay" min="1" step="0.5"> <input type="number" id="s_maxDelay" min="1" step="0.5"></span>
+          <span>Espera entre páginas (s), mín / máx</span><span><input type="number" id="s_minDelay" min="0.8" step="0.1"> <input type="number" id="s_maxDelay" min="0.8" step="0.1"></span>
           <span>Pausa longa a cada N páginas</span><span><input type="number" id="s_burstPages" min="1"></span>
           <span>Duração da pausa longa (s), mín / máx</span><span><input type="number" id="s_burstPauseMin" min="5"> <input type="number" id="s_burstPauseMax" min="5"></span>
           <span>Máx. requisições por dia</span><span><input type="number" id="s_dailyRequestCap" min="10"></span>
@@ -1063,8 +1100,26 @@
     $('unseen').textContent = unseen;
   }
 
+  async function updateEta() {
+    if (!sh) return;
+    const v = (k) => parseFloat($('s_' + k).value) || 0;
+    const ps = (await store.get('pageSizeOK')) || settings.pageSize;
+    const est = (n) => {
+      const pages = Math.ceil(n / ps);
+      const pauses = Math.floor((pages - 1) / Math.max(1, v('burstPages')));
+      const secs = (pages - 1 - pauses) * (v('minDelay') + v('maxDelay')) / 2 + pauses * (v('burstPauseMin') + v('burstPauseMax')) / 2 + pages * 0.6;
+      return secs < 90 ? `${Math.round(secs)} s` : `${Math.round(secs / 60)} min`;
+    };
+    const slow = Date.now() < slowUntil ? ` · <b>freio automático ativo até ${new Date(slowUntil).toLocaleTimeString()}</b> (o Instagram pediu para esperar)` : '';
+    $('eta').innerHTML = `Tempo estimado (${ps} perfis/página): 500 seguindo ≈ ${est(500)} · 2.000 ≈ ${est(2000)}${slow}`;
+  }
+
   const SETTING_KEYS = Object.keys(DEFAULTS).filter((k) => !['pageSize', 'backoffBase', 'maxPasses'].includes(k));
-  function fillSettings() { for (const k of SETTING_KEYS) $('s_' + k).value = settings[k]; }
+  function fillSettings() {
+    for (const k of SETTING_KEYS) if (k !== 'preset') $('s_' + k).value = settings[k];
+    $('preset').value = settings.preset || 'custom';
+    updateEta();
+  }
 
   function build() {
     host = document.createElement('div');
@@ -1087,6 +1142,12 @@
     $('go1').onclick = doList;
     $('go2').onclick = doCompare;
     $('diag').onclick = runDiagnostics;
+    $('preset').onchange = () => {
+      const pr = PRESETS[$('preset').value];
+      if (pr) for (const [k, v] of Object.entries(pr)) $('s_' + k).value = v;
+      updateEta();
+    };
+    for (const k of ['minDelay', 'maxDelay', 'burstPages', 'burstPauseMin', 'burstPauseMax']) $('s_' + k).addEventListener('input', () => { $('preset').value = 'custom'; updateEta(); });
     $('diagCopy').onclick = async () => { await navigator.clipboard.writeText($('diagOut').value); setStatus('Relatório copiado.'); };
     $('uncool').onclick = async () => { await chrome.storage.local.remove('cooldown'); refreshCooldown(); setStatus('Pausa de segurança encerrada.'); };
     $('stop').onclick = () => { if (job) { job.cancelled = true; job.wake?.(); setStatus('Parando…'); } };
@@ -1110,9 +1171,10 @@
     };
     $('save').onclick = async () => {
       const s = { ...settings };
-      for (const k of SETTING_KEYS) { const v = parseFloat($('s_' + k).value); if (Number.isFinite(v) && v >= 0) s[k] = v; }
+      for (const k of SETTING_KEYS) { if (k === 'preset') continue; const v = parseFloat($('s_' + k).value); if (Number.isFinite(v) && v >= 0) s[k] = v; }
+      s.preset = $('preset').value;
       // pisos de segurança
-      s.minDelay = Math.max(1, s.minDelay); s.maxDelay = Math.max(s.minDelay, s.maxDelay);
+      s.minDelay = Math.max(0.8, s.minDelay); s.maxDelay = Math.max(s.minDelay, s.maxDelay);
       s.burstPages = Math.max(1, Math.round(s.burstPages));
       s.burstPauseMin = Math.max(5, s.burstPauseMin); s.burstPauseMax = Math.max(s.burstPauseMin, s.burstPauseMax);
       s.dailyRequestCap = Math.max(1, Math.round(s.dailyRequestCap)); s.maxUsers = Math.max(12, Math.round(s.maxUsers));
@@ -1160,5 +1222,12 @@
   });
 
   // pageSize e backoffBase não são editáveis na tela (versões antigas salvavam pageSize 12).
-  store.get('settings').then((s) => { if (s) settings = { ...DEFAULTS, ...s, pageSize: s.pageSizeOverride || DEFAULTS.pageSize }; });
+  store.get('settings').then((s) => {
+    if (!s) return;
+    // Quem nunca mexeu nos ajustes antigos (3–7 s, pausa 30–75 s a cada 8) passa para o novo padrão.
+    const oldDefaults = s.minDelay === 3 && s.maxDelay === 7 && s.burstPages === 8 && s.burstPauseMin === 30 && s.burstPauseMax === 75;
+    settings = { ...DEFAULTS, ...s, ...(oldDefaults ? PRESETS.equilibrado : {}), pageSize: s.pageSizeOverride || DEFAULTS.pageSize };
+    if (oldDefaults) settings.preset = 'equilibrado';
+  });
+  store.get('slowUntil').then((v) => { slowUntil = v || 0; });
 })();

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "IG Seguindo & Em Comum",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Lista quem uma conta segue, mostra perfis em comum entre duas contas e avisa quando uma conta monitorada segue alguém — usando a sua sessão do Instagram.",
   "permissions": [
     "storage",

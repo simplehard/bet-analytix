@@ -26,17 +26,29 @@ servidor, e os dados ficam só no `chrome.storage` local da extensão.
 3. Fixe o ícone da extensão. Com uma aba do instagram.com aberta e logada, clique nele
    para abrir/fechar o painel. (Se você estiver em outra aba, ele abre o Instagram.)
 
-## Proteções da conta (padrões)
-| Ajuste | Padrão |
-|---|---|
-| Espera entre páginas (100 perfis/página; cai para 12 se o Instagram recusar) | 3–7 s, aleatória |
-| Pausa longa | 30–75 s a cada 8 páginas |
-| Teto diário de requisições (somando tudo) | 300 (~3.500 perfis/dia) |
-| Teto de perfis por lista | 5.000 |
-| Cache de listas completas | 24 h (comparar de novo não refaz a busca) |
-| Monitor: verificação do perfil | a cada 6 h (±15%), 1 requisição por conta |
-| Monitor: lista completa | só quando o número muda, ou a cada 3 dias |
+## Velocidade e proteções da conta
+Em **Ajustes → Velocidade** há três ritmos (o teto diário de requisições vale em todos):
 
+| Ritmo | Espera entre páginas | Pausa longa | Lista de 500 (páginas de 100) | Lista de 500 (páginas de 12) |
+|---|---|---|---|---|
+| Cautelosa | 4–8 s | 45–90 s a cada 6 páginas | ~35 s | ~10 min |
+| **Equilibrada (padrão)** | 1,5–4 s | 15–35 s a cada 10 páginas | **~15 s** | **~3–4 min** |
+| Rápida | 0,8–2 s | 8–20 s a cada 15 páginas | ~8 s | ~1,5–2 min |
+
+- **Freio automático:** se o Instagram pedir para esperar uma vez, a extensão usa o ritmo cauteloso
+  por 24 h, em qualquer configuração.
+- A extensão aprende quantas contas **desativadas/ocultas** cada perfil tem (contadas no total mas
+  nunca mostradas) e para de baixar a lista duas vezes por causa delas. Só a 1ª busca de cada
+  conta faz a 2ª passada.
+- Teto diário: 300 requisições. Com páginas de 100 isso dá ~30.000 perfis por dia.
+- Monitor: verificação a cada ~6 h (±15%). Listas de até 1.000 perfis são baixadas inteiras
+  (≈ 6–10 requisições); maiores só quando o número de seguidos muda, ou a cada 3 dias.
+
+**Risco:** só há leituras (GET), as mesmas que o site faz quando você abre e rola a lista. O
+Instagram não publica limites; o que costuma gerar bloqueio é **volume alto e contínuo** (muitas
+listas grandes por dia, todo dia), não uma lista lida em 15 s. O pior caso comum é um "tente
+novamente mais tarde" temporário. A extensão reage freando, pausando 6 h e, em caso de
+verificação, parando 24 h.
 - Se o Instagram responder "aguarde" (429), a extensão pausa 10 min, depois 20 min,
   e então para — salvando o progresso. Buscar de novo **continua de onde parou**.
 - Se aparecer checkpoint/verificação ou sessão expirada, para na hora.
