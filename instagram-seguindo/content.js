@@ -8,7 +8,7 @@
   const DEFAULTS = {
     minDelay: 3,          // s entre páginas (mínimo)
     maxDelay: 7,          // s entre páginas (máximo)
-    pageSize: 12,         // perfis por página (mesmo valor que o site usa)
+    pageSize: 100,        // perfis por página (outras extensões usam 100–200; cai para 12 se recusado)
     burstPages: 8,        // a cada N páginas faz uma pausa longa
     burstPauseMin: 30,    // s
     burstPauseMax: 75,    // s
@@ -19,8 +19,10 @@
     fullRecheckDays: 3,   // monitor: rebaixa a lista mesmo sem mudança no contador (pega troca 1-por-1)
     maxWatched: 10,       // monitor: máximo de contas monitoradas
     maxPasses: 3,         // listas de terceiros: passadas extras se vierem faltando perfis
+    backoffBase: 60,      // s: 1ª espera após "aguarde" (depois 2x, 4x)
   };
-  const COVERAGE_OK = 0.98; // fração do total do perfil que consideramos "lista completa"
+  const COVERAGE_OK = 0.98;  // fração do total do perfil que consideramos "lista completa"
+  const COVERAGE_MIN = 0.90; // abaixo disso (e sem explicação) a busca é descartada: nada é registrado
   let settings = { ...DEFAULTS };
   let job = null; // { cancelled: boolean }
 
@@ -74,9 +76,40 @@
   }
 
   // ---------- API do Instagram ----------
+  // Pausa de segurança global: depois de bloqueio/limite, nenhuma requisição sai até o horário.
+  async function checkCooldown() {
+    const c = await store.get('cooldown');
+    if (c && Date.now() < c.until) {
+      throw new IgError(`Pausa de segurança até ${new Date(c.until).toLocaleString()} (${c.reason}). Isso protege sua conta; pode encerrar em Ajustes, por sua conta e risco.`, 'cooldown');
+    }
+  }
+  async function startCooldown(hours, reason) {
+    await store.set('cooldown', { until: Date.now() + hours * 3600e3, reason });
+  }
+
+  // igGet com novas tentativas para limite (429) e falha de rede: espera 1, 2, 4 min (±20%),
+  // respeitando Retry-After. Se continuar, entra em pausa de segurança de 6 h.
+  async function igGetRetry(path, opts) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await igGet(path, opts);
+      } catch (e) {
+        if (!['rate', 'net'].includes(e.kind)) throw e;
+        if (attempt >= 3) {
+          if (e.kind === 'rate') await startCooldown(6, 'o Instagram pediu para esperar várias vezes seguidas');
+          throw e;
+        }
+        const base = Math.min(settings.backoffBase * 1000 * 2 ** attempt, 15 * 60e3) * rand(0.8, 1.2);
+        const wait = Math.min(Math.max(base, (e.retryAfter || 0) * 1000), 3600e3);
+        await sleep(wait, `${e.kind === 'rate' ? 'Instagram pediu calma' : 'Falha de rede'} — nova tentativa (${attempt + 1}/3) em`);
+      }
+    }
+  }
+
   async function igGet(path, { html = false, referrer } = {}) {
     if (job?.cancelled) throw new IgError('Interrompido.', 'cancel');
     if (!myId()) throw new IgError('Você não está logado no Instagram nesta aba.', 'auth');
+    await checkCooldown();
     await countRequest();
     let res, text;
     try {
@@ -89,11 +122,20 @@
       };
       const claim = sessionStorage.getItem('www-claim-v2');
       if (!html && claim) headers['X-IG-WWW-Claim'] = claim;
-      res = await fetch(location.origin + path, { credentials: 'include', headers, ...(referrer ? { referrer } : {}) });
+      res = await fetch(location.origin + path, {
+        credentials: 'include', headers, cache: 'no-store', redirect: html ? 'follow' : 'manual',
+        ...(referrer ? { referrer } : {}),
+      });
+      // Requisição de API redirecionada = Instagram mandando para login/verificação.
+      if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) {
+        throw new IgError('O Instagram redirecionou a requisição (sessão expirada ou verificação pendente). Recarregue o Instagram e confira se está logado.', 'auth', 302);
+      }
       text = await res.text();
     } catch (e) {
+      if (e instanceof IgError) throw e;
       throw new IgError('Falha de rede: ' + e.message, 'net');
     }
+    const retryAfter = parseInt(res.headers.get('retry-after') || '', 10) || 0;
     if (html) {
       if (res.status === 429) throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', 429);
       if (!res.ok) throw new IgError(`Erro ${res.status} na página`, res.status === 404 ? 'notfound' : 'http', res.status);
@@ -104,13 +146,20 @@
     const msg = data?.message || '';
     // Ordem importa: sem sessão o Instagram responde 401 + require_login + "Please wait a few minutes".
     if (data?.checkpoint_url || /checkpoint|challenge/i.test(msg)) {
-      throw new IgError('O Instagram pediu uma verificação de segurança. Abra o app/site, resolva e espere algumas horas antes de usar de novo.', 'checkpoint', res.status);
+      await startCooldown(24, 'o Instagram pediu verificação de segurança');
+      throw new IgError('O Instagram pediu uma verificação de segurança. Abra o app/site e resolva. A extensão fica parada por 24 h para proteger a conta.', 'checkpoint', res.status);
+    }
+    if (data?.feedback_required || /feedback_required|action.?block/i.test(msg + ' ' + (data?.spam ? 'action block' : ''))) {
+      await startCooldown(24, 'o Instagram aplicou um bloqueio temporário');
+      throw new IgError('O Instagram aplicou um bloqueio temporário de ações. A extensão fica parada por 24 h para proteger a conta.', 'checkpoint', res.status);
     }
     if (res.status === 401 || data?.require_login || /login_required/i.test(msg)) {
       throw new IgError('Sessão inválida ou expirada — recarregue o Instagram e faça login de novo.', 'auth', res.status);
     }
     if (res.status === 429 || /wait a few minutes|try again later|aguarde|tente novamente/i.test(msg)) {
-      throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', res.status);
+      const err = new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', res.status);
+      err.retryAfter = retryAfter;
+      throw err;
     }
     if (res.status === 404) throw new IgError(`O Instagram respondeu 404 em ${path.split('?')[0]}`, 'notfound', 404);
     if (!res.ok || !data || data.status === 'fail') {
@@ -179,7 +228,7 @@
     const attempt = async (name, fn) => {
       try { await fn(); tries.push(`${name}: ok`); }
       catch (e) {
-        if (['cancel', 'auth', 'checkpoint', 'cap'].includes(e.kind)) throw e;
+        if (['cancel', 'auth', 'checkpoint', 'cap', 'cooldown'].includes(e.kind)) throw e;
         if (e.kind === 'rate') sawRate = true;
         tries.push(`${name}: ${e.status || e.kind}`);
       }
@@ -288,64 +337,82 @@
 
     const seen = new Set(state.users.map((u) => u.pk));
     let useOrder = type === 'following';
-    let pages = 0, rateStrikes = 0, passStart = state.users.length;
+    let pageSize = (await store.get('pageSizeOK')) || settings.pageSize;
+    let pages = 0, passStart = state.users.length, emptyStreak = 0;
+    let cursors = new Set();
+
+    const endPass = async (reason) => {
+      // Fim de uma passada. Em listas de terceiros a ordem é instável entre páginas, então
+      // a paginação pode pular perfis. Se faltou gente, faz outra passada e junta.
+      const gain = state.users.length - passStart;
+      state.passGain.push(gain);
+      state.passEnd = (state.passEnd || []).concat(reason);
+      const coverage = total ? state.users.length / total : 1;
+      const ownList = isSelf && type === 'following' && useOrder && reason === 'fim';
+      const lastGainUseless = state.pass > 1 && gain === 0; // passada não achou ninguém novo: o que falta é conta desativada/oculta
+      if (coverage < COVERAGE_OK && !ownList && !lastGainUseless && state.pass < settings.maxPasses) {
+        state.pass++;
+        state.nextMaxId = null;
+        passStart = state.users.length;
+        cursors = new Set();
+        emptyStreak = 0;
+        await store.set(key, state);
+        await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000,
+          `Vieram ${state.users.length}/${total} — passada ${state.pass} para achar os que faltaram`);
+        return false;
+      }
+      return true;
+    };
 
     while (true) {
       if (state.users.length >= settings.maxUsers) { state.truncated = true; break; }
-      const q = new URLSearchParams({ count: String(settings.pageSize) });
+      const q = new URLSearchParams({ count: String(pageSize) });
       if (state.nextMaxId) q.set('max_id', state.nextMaxId);
       if (type === 'followers') q.set('search_surface', 'follow_list_page');
       if (useOrder) q.set('order', 'date_followed_latest');
 
       let d;
       try {
-        d = await igGet(`/api/v1/friendships/${profile.id}/${type}/?${q}`);
-        rateStrikes = 0;
+        d = await igGetRetry(`/api/v1/friendships/${profile.id}/${type}/?${q}`);
       } catch (e) {
-        if (e.kind === 'http' && e.status === 400 && useOrder) { useOrder = false; continue; } // parâmetro não aceito: usa a ordem padrão
-        if (e.kind === 'rate' && rateStrikes < 2) {
-          rateStrikes++;
-          await store.set(key, state);
-          await sleep(rateStrikes * 10 * 60e3, `Instagram pediu calma. Pausa de ${rateStrikes * 10} min (progresso salvo)`);
-          continue;
-        }
+        if (e.kind === 'http' && e.status === 400 && pageSize > 12) { pageSize = 12; await store.set('pageSizeOK', 12); continue; } // página grande recusada
+        if (e.kind === 'http' && e.status === 400 && useOrder) { useOrder = false; continue; } // parâmetro de ordem recusado
         await store.set(key, state);
         throw e;
       }
+      if (!Array.isArray(d.users)) {
+        await store.set(key, state);
+        throw new IgError('Resposta inesperada do Instagram (sem lista de usuários). O formato pode ter mudado.', 'format');
+      }
 
-      for (const u of d.users || []) {
-        const pk = String(u.pk ?? u.pk_id ?? u.id);
+      let added = 0;
+      for (const u of d.users) {
+        const pkRaw = u.pk ?? u.pk_id ?? u.id;
+        if (pkRaw == null || !u.username) continue;
+        const pk = String(pkRaw);
         if (seen.has(pk)) continue;
         seen.add(pk);
+        added++;
         state.users.push({
           pk, username: u.username, fullName: u.full_name || '',
           isPrivate: !!u.is_private, isVerified: !!u.is_verified, pic: u.profile_pic_url || '',
         });
       }
-      state.nextMaxId = d.next_max_id || null;
+      const next = d.next_max_id != null && d.next_max_id !== '' ? String(d.next_max_id) : null;
+      state.nextMaxId = next;
       pages++;
       await store.set(key, state);
       onProgress?.(state, false);
 
-      if (!state.nextMaxId || !(d.users || []).length) {
-        // Fim de uma passada. Em listas de terceiros a ordem é instável entre páginas, então
-        // a paginação pode pular perfis. Se faltou muita gente, faz outra passada e junta.
-        const gain = state.users.length - passStart;
-        state.passGain.push(gain);
-        const coverage = total ? state.users.length / total : 1;
-        const ownList = isSelf && type === 'following' && useOrder;
-        const lastGainUseless = state.pass > 1 && gain === 0; // passada não achou ninguém novo: o que falta é conta desativada/oculta
-        if (coverage < COVERAGE_OK && !ownList && !lastGainUseless && state.pass < settings.maxPasses) {
-          state.pass++;
-          state.nextMaxId = null;
-          passStart = state.users.length;
-          await store.set(key, state);
-          await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000,
-            `Vieram ${state.users.length}/${total} — fazendo passada ${state.pass} para achar os que faltaram`);
-          continue;
-        }
-        state.complete = true;
-        break;
+      emptyStreak = d.users.length ? 0 : emptyStreak + 1;
+      let reason = null;
+      if (!next || d.has_more === false) reason = 'fim';
+      else if (cursors.has(next)) reason = 'cursor repetido';
+      else if (emptyStreak >= 3) reason = 'páginas vazias';
+      cursors.add(next);
+      if (reason) {
+        if (await endPass(reason)) break;
+        continue;
       }
       if (pages % settings.burstPages === 0) {
         await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000, `Pausa longa de segurança (${state.users.length} perfis)`);
@@ -358,7 +425,12 @@
     // Cronológica de verdade só quando é a SUA lista "seguindo" e o Instagram aceitou o parâmetro de ordem.
     state.chronological = isSelf && type === 'following' && useOrder;
     state.coverage = total ? state.users.length / total : 1;
-    if (record) state.diff = await recordSnapshot(key, state);
+    // Lista muito incompleta e sem explicação (a última passada ainda achava gente nova):
+    // não serve de base para comparar — não registra nada, para não gerar falsos follows/unfollows.
+    const explained = state.passGain.length > 1 && state.passGain[state.passGain.length - 1] === 0;
+    state.rejected = !state.truncated && total != null && state.coverage < COVERAGE_MIN && !explained;
+    if (record && !state.rejected) state.diff = await recordSnapshot(key, state, profile);
+    else if (record) state.diff = { rejected: true, coverage: state.coverage, added: [], removed: [], removedUsers: [], baseline: false };
     await store.set(key, state);
     return state;
   }
@@ -368,7 +440,32 @@
    * Para contas de terceiros é a ÚNICA forma confiável de saber quem foi seguido recentemente,
    * porque o Instagram entrega essas listas em ordem personalizada (não cronológica).
    */
-  async function recordSnapshot(key, state) {
+  /**
+   * Pesquisa um @ dentro da lista da pessoa (como a caixa de busca da própria lista do Instagram).
+   * Retorna 'present' | 'absent' | null (não deu para saber). Se o Instagram ignorar o parâmetro
+   * de busca (resposta não tem nada a ver com o termo), desliga o recurso para não errar.
+   */
+  async function queryPresence(profileId, type, username, pk) {
+    if (await store.get('queryUnsupported')) return null;
+    const q = new URLSearchParams({ query: username, count: '12' });
+    if (type === 'followers') q.set('search_surface', 'follow_list_page');
+    let d;
+    try {
+      d = await igGetRetry(`/api/v1/friendships/${profileId}/${type}/?${q}`);
+    } catch (e) {
+      if (['cancel', 'auth', 'checkpoint', 'cap', 'cooldown'].includes(e.kind)) throw e;
+      return null;
+    }
+    const users = Array.isArray(d?.users) ? d.users : null;
+    if (!users) return null;
+    if (users.some((u) => String(u.pk ?? u.pk_id ?? u.id) === pk)) return 'present';
+    const term = username.toLowerCase().slice(0, 4);
+    const related = users.every((u) => (u.username || '').toLowerCase().includes(term) || (u.full_name || '').toLowerCase().includes(term));
+    if (users.length && !related) { await store.set('queryUnsupported', true); return null; } // busca ignorada
+    return 'absent';
+  }
+
+  async function recordSnapshot(key, state, profile) {
     const hk = 'hist:' + key.slice(5);
     const h = (await store.get(hk)) || { firstSeen: {}, snapshots: [], lastPks: null };
     const now = state.fetchedAt;
@@ -402,13 +499,31 @@
     const removed = [];
     const countDropped = prevSnap?.total != null && state.total != null && state.total < prevSnap.total;
     const keep = new Set(curr);
+    const verdicts = {};
     if (baseline) {
       for (const pk of prev) keep.add(pk); // calibrando: soma as buscas, não remove ninguém
     } else {
+      // Quem sumiu da lista é confirmado por busca direta (até 15 por verificação):
+      // "present" = a busca só tinha pulado o perfil; "absent" = deixou de seguir mesmo.
+      const cands = [...prev].filter((pk) => !curr.has(pk));
+      let canQuery = !!profile && cands.length <= 15;
+      for (const pk of cands) {
+        if (!canQuery || !h.lastUsers[pk]?.username) break;
+        await sleep(rand(settings.minDelay, settings.maxDelay) * 1000, `Confirmando @${h.lastUsers[pk].username} na lista`);
+        verdicts[pk] = await queryPresence(profile.id, state.type, h.lastUsers[pk].username, pk);
+        if (verdicts[pk] === null) canQuery = false;
+      }
+      // Sem a busca: a queda do contador só confirma se bate exatamente com quem sumiu;
+      // "sumiu em 2 buscas seguidas" só vale se a lista atual veio quase inteira (≥95%).
+      const unresolved = cands.filter((pk) => !verdicts[pk]);
+      const drop = countDropped ? prevSnap.total - state.total : 0;
+      const dropExplains = complete && drop > 0 && unresolved.length <= drop;
+      const twoMissOk = complete || coverage >= 0.95;
       for (const pk of prev) {
         if (curr.has(pk)) continue;
+        if (verdicts[pk] === 'present') { keep.add(pk); delete h.missing[pk]; continue; }
         h.missing[pk] = (h.missing[pk] || 0) + 1;
-        if (h.missing[pk] >= 2 || (complete && countDropped)) {
+        if (verdicts[pk] === 'absent' || (twoMissOk && h.missing[pk] >= 2) || dropExplains) {
           removed.push(pk);
           delete h.missing[pk];
           if (h.lastUsers[pk]) h.removedInfo[pk] = { ...h.lastUsers[pk], removedAt: now };
@@ -420,16 +535,17 @@
     h.lastPks = [...keep];
     const cumCoverage = state.total ? keep.size / state.total : 1;
     if (cumCoverage >= COVERAGE_OK || (state.passGain || []).slice(-1)[0] === 0) h.calibrated = true;
-    h.snapshots.push({ at: now, count: curr.size, total: state.total, coverage, passes: state.pass || 1 });
+    h.snapshots.push({ at: now, count: curr.size, total: state.total, coverage, complete, passes: state.pass || 1 });
     h.snapshots = h.snapshots.slice(-50);
     await store.set(hk, h);
     for (const u of state.users) u.firstSeen = h.firstSeen[u.pk];
     return {
       baseline, since: prevSnap?.at || null, added, removed,
       removedUsers: removed.map((pk) => ({ pk, ...(h.removedInfo[pk] || { username: '?' }) })),
-      reliable: complete && (!prevSnap || prevSnap.coverage >= COVERAGE_OK),
+      reliable: complete && (!prevSnap || (prevSnap.complete ?? prevSnap.coverage >= COVERAGE_OK)),
       coverage, pending: Object.keys(h.missing).length,
       calibrated: !!h.calibrated, cumCoverage,
+      confirmedByQuery: Object.values(verdicts).filter(Boolean).length,
     };
   }
 
@@ -459,12 +575,27 @@
     const changed = countKnown && x.lastCount != null && p.followingCount !== x.lastCount;
     // Sem contador (o Instagram não entregou), rebaixa a lista no máximo 1x por dia.
     const recheckMs = countKnown ? settings.fullRecheckDays * 86400e3 : 24 * 3600e3;
-    const stale = !x.lastFull || !x.calibrated || now - x.lastFull > recheckMs;
+    // Com páginas de 100, uma lista de até ~1.000 perfis custa ≤ ~10 requisições: baixa sempre.
+    // Isso pega até "seguiu um e deixou de seguir outro" (contador igual).
+    const pageSizeNow = (await store.get('pageSizeOK')) || settings.pageSize;
+    const cheapFull = pageSizeNow >= 100 && countKnown && p.followingCount <= 1000;
+    const stale = cheapFull || !x.lastFull || !x.calibrated || now - x.lastFull > recheckMs;
     const events = [];
     if (forceFull || changed || stale) {
       setStatus(`Monitor: @${username} ${changed ? `mudou de ${x.lastCount} para ${p.followingCount} seguindo — ` : ''}baixando a lista…`);
       const st = await fetchList(username, 'following', { force: true, profile: p });
       const d = st.diff;
+      if (d.rejected) {
+        // Lista veio incompleta demais: não registra nada e tenta de novo em breve.
+        // O contador antigo é mantido para que a mudança seja detectada na próxima.
+        const w2 = await getWatch();
+        if (w2[username]) {
+          Object.assign(w2[username], { lastCheck: now, retrySoon: true,
+            lastError: `Lista veio incompleta (${Math.round(100 * d.coverage)}% de ${p.followingCount ?? '?'}). Nada foi registrado; tento de novo em até 2 h.` });
+          await store.set('watch', w2);
+        }
+        return [];
+      }
       if (!d.baseline) {
         // Janela: da última vez em que o contador ainda estava igual até agora.
         const from = Math.max(d.since || 0, changed ? x.lastCheck || 0 : 0) || d.since;
@@ -488,15 +619,16 @@
     }
     const w2 = await getWatch(); // pode ter mudado durante a busca
     if (!w2[username]) return events;
-    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: countKnown ? p.followingCount : x.lastCount, id: p.id, calibrated: x.calibrated, cumCoverage: x.cumCoverage, via: p.diag });
+    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: countKnown ? p.followingCount : x.lastCount, id: p.id, calibrated: x.calibrated, cumCoverage: x.cumCoverage, via: p.diag, retrySoon: false, lastError: null });
     w2[username].events = [...events, ...(w2[username].events || [])].slice(0, 500);
-    w2[username].unseen = (w2[username].unseen || 0) + events.filter((e) => e.kind === 'follow').length;
+    // Só eventos confirmados contam no ícone e na notificação.
+    w2[username].unseen = (w2[username].unseen || 0) + events.filter((e) => e.kind === 'follow' && !e.unsure).length;
     await store.set('watch', w2);
     return events;
   }
 
   // Contas em calibração são reverificadas mais cedo (no máx. a cada 2 h).
-  const intervalFor = (x) => (x.calibrated ? settings.monitorHours : Math.min(2, settings.monitorHours)) * 3600e3 * (x.jitter || 1);
+  const intervalFor = (x) => (x.calibrated && !x.retrySoon ? settings.monitorHours : Math.min(2, settings.monitorHours)) * 3600e3 * (x.jitter || 1);
 
   async function acquireLock() {
     const l = await store.get('monitorLock');
@@ -510,6 +642,7 @@
   /** Roda as contas monitoradas que estão vencidas. `only` = forçar uma conta (botão "verificar agora"). */
   async function monitorTick(only = null) {
     if (job || !myId()) return;
+    if (!only) { const c = await store.get('cooldown'); if (c && Date.now() < c.until) return; }
     const w = await getWatch();
     const now = Date.now();
     const due = only ? [only] : Object.keys(w).filter((u) => !w[u].lastCheck || now - w[u].lastCheck >= intervalFor(w[u]));
@@ -523,14 +656,14 @@
         try {
           found.push(...(await checkAccount(u, { forceFull: !w[u].lastFull })));
           const wj = await getWatch();
-          if (wj[u]) { wj[u].jitter = rand(0.85, 1.15); wj[u].lastError = null; await store.set('watch', wj); }
+          if (wj[u]) { wj[u].jitter = rand(0.85, 1.15); await store.set('watch', wj); }
         } catch (e) {
-          if (['cancel', 'rate', 'auth', 'checkpoint', 'cap'].includes(e.kind)) throw e;
+          if (['cancel', 'rate', 'auth', 'checkpoint', 'cap', 'cooldown'].includes(e.kind)) throw e;
           const wj = await getWatch();
           if (wj[u]) { wj[u].lastError = e.message; wj[u].lastCheck = Date.now(); await store.set('watch', wj); }
         }
       }
-      const fol = found.filter((e) => e.kind === 'follow');
+      const fol = found.filter((e) => e.kind === 'follow' && !e.unsure);
       setStatus(`Monitor: ${due.length} conta(s) verificada(s). ${fol.length ? fol.length + ' novo(s) follow(s)!' : 'Nada novo.'}`);
       if (fol.length) {
         chrome.runtime.sendMessage({
@@ -679,8 +812,13 @@
           <span>Monitor: máx. de contas</span><span><input type="number" id="s_maxWatched" min="1"></span>
         </div>
         <div class="muted" id="usage"></div>
+        <div class="muted" id="cool" style="color:#a05a00"></div>
         <div class="row"><button class="b" id="save">Salvar</button><button class="b sec" id="reset">Padrões</button><span style="flex:1"></span><button class="b sec" id="clear">Limpar cache</button></div>
         <div class="muted">Os padrões são conservadores de propósito. Diminuir as esperas aumenta o risco de bloqueio temporário.</div>
+        <div class="row"><button class="b sec" id="diag">Testar conexão</button><button class="b sec" id="uncool">Encerrar pausa de segurança</button></div>
+        <div class="muted">"Testar conexão" faz ~6 requisições e gera um relatório (sem dados pessoais além dos @ testados).</div>
+        <textarea id="diagOut" readonly style="display:none; width:100%; height:140px; font:11px monospace; box-sizing:border-box"></textarea>
+        <button class="b sec" id="diagCopy" style="display:none">Copiar relatório</button>
       </div>
 
       <div style="padding: 0 12px 8px; display:flex; flex-direction:column; gap:6px">
@@ -827,6 +965,56 @@
 
   const fmtDT = (t) => new Date(t).toLocaleString(undefined, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
+  async function refreshCooldown() {
+    if (!sh) return;
+    const c = await store.get('cooldown');
+    $('cool').textContent = c && Date.now() < c.until ? `Pausa de segurança ativa até ${new Date(c.until).toLocaleString()} — ${c.reason}.` : '';
+  }
+
+  async function runDiagnostics() {
+    const out = $('diagOut');
+    out.style.display = ''; $('diagCopy').style.display = '';
+    const lines = [`IG Seguindo v${chrome.runtime.getManifest().version} · ${new Date().toISOString()}`, `logado: ${myId() ? 'sim' : 'NÃO'} · claim: ${sessionStorage.getItem('www-claim-v2') ? 'sim' : 'não'}`];
+    const show = () => { out.value = lines.join('\n'); };
+    show();
+    await runJob(async () => {
+      const probe = async (name, fn) => {
+        try { lines.push(`${name}: ${await fn()}`); }
+        catch (e) { lines.push(`${name}: ERRO [${e.kind}${e.status ? ' ' + e.status : ''}] ${String(e.message).slice(0, 140)}`); if (['cancel', 'cooldown', 'checkpoint', 'auth'].includes(e.kind)) throw e; }
+        show();
+        await sleep(rand(1.5, 3) * 1000, 'Testando');
+      };
+      const listProbe = async (id, count, extra = '') => {
+        const d = await igGet(`/api/v1/friendships/${id}/following/?count=${count}${extra}`);
+        return `ok · ${Array.isArray(d.users) ? d.users.length : 'sem users'} perfis · next_max_id=${d.next_max_id ?? '-'} · has_more=${d.has_more ?? '-'} · big_list=${d.big_list ?? '-'}`;
+      };
+      await probe('sua lista (count=100, ordem por data)', () => listProbe(myId(), 100, '&order=date_followed_latest'));
+      const w = await getWatch();
+      const target = cleanUser($('u1').value) || Object.keys(w)[0];
+      if (!target) { lines.push('(digite um @ na aba Lista para testar uma conta de outra pessoa)'); show(); return; }
+      let prof = null;
+      await probe(`perfil @${target}`, async () => { prof = await getProfile(target, true); return `id ${prof.id} · seguindo ${prof.followingCount ?? '?'} · privada ${prof.isPrivate} · ${prof.diag}`; });
+      if (!prof?.id) return;
+      let first = null;
+      await probe(`lista @${target} (count=100)`, async () => {
+        const d = await igGet(`/api/v1/friendships/${prof.id}/following/?count=100`);
+        first = d.users?.[0];
+        return `ok · ${d.users?.length} perfis · next_max_id=${d.next_max_id ?? '-'} · has_more=${d.has_more ?? '-'}`;
+      });
+      await probe(`lista @${target} (count=12)`, () => listProbe(prof.id, 12));
+      if (first?.username) {
+        await chrome.storage.local.remove('queryUnsupported');
+        await probe(`busca dentro da lista (@${first.username})`, async () => {
+          const r = await queryPresence(prof.id, 'following', first.username, String(first.pk ?? first.pk_id));
+          return r === 'present' ? 'ok (encontrou)' : r === 'absent' ? 'NÃO encontrou (busca pode não funcionar)' : 'busca ignorada pelo Instagram (recurso desligado)';
+        });
+      }
+      lines.push('Fim. Copie e mande este relatório se algo deu ERRO.');
+      show();
+    });
+    setStatus('Teste concluído — veja o relatório em Ajustes.');
+  }
+
   async function addWatch() {
     const u = cleanUser($('uw').value);
     if (!u) return setStatus('Digite um @usuario.', true);
@@ -865,17 +1053,17 @@
     }).join('') : '<div class="muted">Nenhuma conta monitorada.</div>';
     const all = $('wfilter').value === 'all';
     const evs = names.flatMap((u) => w[u].events || []).filter((e) => all || e.kind === 'follow').sort((a, b) => b.to - a.to);
-    $('feed').innerHTML = evs.length ? evs.slice(0, 300).map((e) => `<div class="ev ${e.kind === 'unfollow' ? 'un' : ''}">
+    $('feed').innerHTML = evs.length ? evs.slice(0, 300).map((e) => `<div class="ev ${e.kind === 'unfollow' ? 'un' : ''}" style="${e.unsure ? 'opacity:.55' : ''}">
         <a href="https://www.instagram.com/${esc(e.who)}/" target="_blank">@${esc(e.who)}</a> ${e.kind === 'follow' ? 'seguiu' : 'deixou de seguir'}
         <a href="https://www.instagram.com/${esc(e.username)}/" target="_blank">@${esc(e.username)}</a>
-        <small>entre ${fmtDT(e.from)} e ${fmtDT(e.to)}${e.unsure ? ' · <b>incerto</b>: pode ser alguém que a busca anterior não trouxe' : ''}</small></div>`).join('')
+        <small>entre ${fmtDT(e.from)} e ${fmtDT(e.to)}${e.unsure ? ' · <b>incerto</b>: provavelmente alguém que a busca anterior não trouxe (não conta no ícone)' : ' · confirmado'}</small></div>`).join('')
       : '<div class="muted">Nada ainda. A 1ª verificação de cada conta só guarda a referência; os follows aparecem a partir da próxima mudança.</div>';
     const unseen = names.reduce((n, u) => n + (w[u].unseen || 0), 0);
     $('unseen').style.display = unseen ? '' : 'none';
     $('unseen').textContent = unseen;
   }
 
-  const SETTING_KEYS = Object.keys(DEFAULTS).filter((k) => k !== 'pageSize');
+  const SETTING_KEYS = Object.keys(DEFAULTS).filter((k) => !['pageSize', 'backoffBase', 'maxPasses'].includes(k));
   function fillSettings() { for (const k of SETTING_KEYS) $('s_' + k).value = settings[k]; }
 
   function build() {
@@ -898,6 +1086,9 @@
     $('close').onclick = () => (host.style.display = 'none');
     $('go1').onclick = doList;
     $('go2').onclick = doCompare;
+    $('diag').onclick = runDiagnostics;
+    $('diagCopy').onclick = async () => { await navigator.clipboard.writeText($('diagOut').value); setStatus('Relatório copiado.'); };
+    $('uncool').onclick = async () => { await chrome.storage.local.remove('cooldown'); refreshCooldown(); setStatus('Pausa de segurança encerrada.'); };
     $('stop').onclick = () => { if (job) { job.cancelled = true; job.wake?.(); setStatus('Parando…'); } };
     $('addw').onclick = addWatch;
     $('wfilter').onchange = renderMonitor;
@@ -946,6 +1137,7 @@
     fillSettings();
     store.get('usage').then(refreshUsage);
     renderMonitor();
+    refreshCooldown();
   }
 
   async function open() {
@@ -962,7 +1154,11 @@
   // Agenda do monitor: roda enquanto houver uma aba do Instagram aberta (uma aba por vez, via trava).
   setTimeout(() => monitorTick(), rand(20, 60) * 1000);
   setInterval(() => monitorTick(), 10 * 60e3);
-  chrome.storage.onChanged.addListener((ch) => { if (ch.watch && sh && host.style.display !== 'none') renderMonitor(); });
+  chrome.storage.onChanged.addListener((ch) => {
+    if (ch.watch && sh && host.style.display !== 'none') renderMonitor();
+    if (ch.cooldown && sh) refreshCooldown();
+  });
 
-  store.get('settings').then((s) => { if (s) settings = { ...DEFAULTS, ...s }; });
+  // pageSize e backoffBase não são editáveis na tela (versões antigas salvavam pageSize 12).
+  store.get('settings').then((s) => { if (s) settings = { ...DEFAULTS, ...s, pageSize: s.pageSizeOverride || DEFAULTS.pageSize }; });
 })();

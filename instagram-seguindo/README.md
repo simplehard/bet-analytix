@@ -29,7 +29,7 @@ servidor, e os dados ficam só no `chrome.storage` local da extensão.
 ## Proteções da conta (padrões)
 | Ajuste | Padrão |
 |---|---|
-| Espera entre páginas (12 perfis/página) | 3–7 s, aleatória |
+| Espera entre páginas (100 perfis/página; cai para 12 se o Instagram recusar) | 3–7 s, aleatória |
 | Pausa longa | 30–75 s a cada 8 páginas |
 | Teto diário de requisições (somando tudo) | 300 (~3.500 perfis/dia) |
 | Teto de perfis por lista | 5.000 |
@@ -69,18 +69,39 @@ custa ~85 (a lista inteira). Com o teto de 300 por dia, dá para acompanhar vár
 tranquilamente, desde que elas não sigam gente nova toda hora. Contas que seguem muitos milhares
 de perfis consomem bem mais.
 
-## Confiabilidade com listas grandes (500+)
-Em listas de terceiros o Instagram usa uma ordem personalizada que pode mudar durante a
-paginação, fazendo a busca repetir uns perfis e pular outros. A extensão se protege assim:
-- descarta repetidos e, se vierem menos de 98% do total, faz até 3 passadas e junta tudo;
-- **calibração**: enquanto as buscas somadas não cobrirem 98% da lista, perfis que aparecem
-  pela primeira vez entram na referência em silêncio (não viram "seguiu"). A conta mostra
-  "calibrando NN%". Follows feitos durante a calibração não são registrados;
-- "seguiu" só vale para quem **nunca** apareceu em nenhuma busca anterior; se a quantidade de
-  "seguiu" não bater com a variação do contador, os eventos ficam marcados como **incerto**;
-- "deixou de seguir" só é confirmado se o perfil sumir em 2 buscas seguidas.
+## Como a extensão evita erros (v1.4)
+Baseado no que outras extensões abertas fazem hoje (insta-track, followlens) e em relatos de
+2026 sobre a API interna do Instagram.
 
-Teste simulado com 540 seguindo (11 ocultas): com ordem estável, 12/12 follows e 3/3
-unfollows certos, zero falsos. No pior caso (ordem reembaralhada a cada página): 2 ciclos
-de calibração, depois quase todos os follows detectados (alguns um ciclo atrasado) e 1 falso,
-marcado como incerto. Nesse pior caso cada mudança custa ~140 requisições para 540 perfis.
+**Na coleta**
+- Páginas de 100 perfis: uma lista de 500 sai em ~6 requisições, o que dá menos chance de a
+  ordem mudar no meio e menos risco para a conta.
+- Para a paginação ao ver cursor repetido ou 3 páginas vazias; descarta repetidos pelo id.
+- Se faltar gente, faz até 3 passadas e junta. Se uma passada extra não acha ninguém novo, o que
+  falta são contas desativadas/ocultas (a lista é considerada completa).
+- **Lista abaixo de 90% e ainda instável é descartada**: nada é registrado, e a extensão tenta de novo
+  em até 2 h.
+- Limite (429): espera 1, 2 e 4 min, respeitando o `Retry-After`. Se continuar, para por 6 h.
+- Verificação de segurança, bloqueio temporário (`feedback_required`) ou redirecionamento para
+  login: para na hora (24 h nos dois primeiros) e avisa.
+
+**No monitor**
+- "Seguiu" só vale para quem **nunca** apareceu em busca anterior, e só é **confirmado** se bater
+  com a variação do número de "seguindo". Senão aparece como *incerto* e não conta no ícone nem
+  na notificação.
+- "Deixou de seguir" é **confirmado pesquisando o @ dentro da lista da pessoa** (a mesma busca da
+  caixa de pesquisa do Instagram). Se essa busca não funcionar, só confirma quando o contador cair
+  exatamente o mesmo número ou quando o perfil sumir em 2 buscas completas.
+- Fase de calibração: até ter visto ~98% da lista, ninguém vira "seguiu".
+- Listas de até 1.000 perfis são baixadas inteiras a cada verificação (~10 requisições). Isso pega
+  até "seguiu um e deixou de seguir outro" no mesmo período.
+
+**Testes** (Instagram simulado, 23 cenários, todos passando): páginas de 100; recusa de página
+grande; 429 com recuperação; 429 persistente com pausa de 6 h; verificação de segurança;
+`feedback_required`; redirecionamento para login; lista 60% descartada; paginação instável
+moderada sem falsos; perfis pulados sem falso unfollow; busca ignorada pelo Instagram; contador
+igual (troca 1-por-1); cursor repetido; diagnóstico.
+
+**O que não dá para garantir:** a API é interna e sem documentação. O Instagram muda sem aviso, e
+o comportamento varia por conta. Por isso existe **Ajustes → Testar conexão**: ele gera um
+relatório do que funciona na sua conta. Se aparecer ERRO, é ele que deve ser enviado para o ajuste.
