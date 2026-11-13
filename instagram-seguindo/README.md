@@ -68,3 +68,19 @@ Conta que segue ~1.000 perfis: cada verificação sem mudança custa 1 requisiç
 custa ~85 (a lista inteira). Com o teto de 300 por dia, dá para acompanhar várias contas
 tranquilamente, desde que elas não sigam gente nova toda hora. Contas que seguem muitos milhares
 de perfis consomem bem mais.
+
+## Confiabilidade com listas grandes (500+)
+Em listas de terceiros o Instagram usa uma ordem personalizada que pode mudar durante a
+paginação, fazendo a busca repetir uns perfis e pular outros. A extensão se protege assim:
+- descarta repetidos e, se vierem menos de 98% do total, faz até 3 passadas e junta tudo;
+- **calibração**: enquanto as buscas somadas não cobrirem 98% da lista, perfis que aparecem
+  pela primeira vez entram na referência em silêncio (não viram "seguiu"). A conta mostra
+  "calibrando NN%". Follows feitos durante a calibração não são registrados;
+- "seguiu" só vale para quem **nunca** apareceu em nenhuma busca anterior; se a quantidade de
+  "seguiu" não bater com a variação do contador, os eventos ficam marcados como **incerto**;
+- "deixou de seguir" só é confirmado se o perfil sumir em 2 buscas seguidas.
+
+Teste simulado com 540 seguindo (11 ocultas): com ordem estável, 12/12 follows e 3/3
+unfollows certos, zero falsos. No pior caso (ordem reembaralhada a cada página): 2 ciclos
+de calibração, depois quase todos os follows detectados (alguns um ciclo atrasado) e 1 falso,
+marcado como incerto. Nesse pior caso cada mudança custa ~140 requisições para 540 perfis.

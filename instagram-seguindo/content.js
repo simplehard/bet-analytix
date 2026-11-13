@@ -18,7 +18,9 @@
     monitorHours: 6,      // monitor: a cada quantas horas confere cada conta (1 requisição)
     fullRecheckDays: 3,   // monitor: rebaixa a lista mesmo sem mudança no contador (pega troca 1-por-1)
     maxWatched: 10,       // monitor: máximo de contas monitoradas
+    maxPasses: 3,         // listas de terceiros: passadas extras se vierem faltando perfis
   };
+  const COVERAGE_OK = 0.98; // fração do total do perfil que consideramos "lista completa"
   let settings = { ...DEFAULTS };
   let job = null; // { cancelled: boolean }
 
@@ -151,7 +153,7 @@
    * Instagram entrega — para "seguindo", do follow mais recente ao mais antigo.
    * Salva o progresso a cada página: se parar no meio, a próxima busca continua de onde parou.
    */
-  async function fetchList(username, type, { force = false, onProgress, profile: given } = {}) {
+  async function fetchList(username, type, { force = false, onProgress, profile: given, record = true } = {}) {
     const key = `list:${type}:${username}`;
     const cached = await store.get(key);
     const fresh = cached?.complete && Date.now() - cached.fetchedAt < settings.cacheHours * 3600e3;
@@ -173,13 +175,15 @@
     const state = resume ? cached : {
       id: profile.id, username: profile.username, fullName: profile.fullName, type,
       total, users: [], nextMaxId: null, complete: false, truncated: false, startedAt: Date.now(), isSelf,
+      pass: 1, passGain: [],
     };
+    state.pass ||= 1; state.passGain ||= [];
     state.total = total;
     if (resume) setStatus(`Continuando @${username} a partir de ${state.users.length} perfis já salvos…`);
 
     const seen = new Set(state.users.map((u) => u.pk));
     let useOrder = type === 'following';
-    let pages = 0, rateStrikes = 0;
+    let pages = 0, rateStrikes = 0, passStart = state.users.length;
 
     while (true) {
       if (state.users.length >= settings.maxUsers) { state.truncated = true; break; }
@@ -218,7 +222,26 @@
       await store.set(key, state);
       onProgress?.(state, false);
 
-      if (!state.nextMaxId || !(d.users || []).length) { state.complete = true; break; }
+      if (!state.nextMaxId || !(d.users || []).length) {
+        // Fim de uma passada. Em listas de terceiros a ordem é instável entre páginas, então
+        // a paginação pode pular perfis. Se faltou muita gente, faz outra passada e junta.
+        const gain = state.users.length - passStart;
+        state.passGain.push(gain);
+        const coverage = total ? state.users.length / total : 1;
+        const ownList = isSelf && type === 'following' && useOrder;
+        const lastGainUseless = state.pass > 1 && gain === 0; // passada não achou ninguém novo: o que falta é conta desativada/oculta
+        if (coverage < COVERAGE_OK && !ownList && !lastGainUseless && state.pass < settings.maxPasses) {
+          state.pass++;
+          state.nextMaxId = null;
+          passStart = state.users.length;
+          await store.set(key, state);
+          await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000,
+            `Vieram ${state.users.length}/${total} — fazendo passada ${state.pass} para achar os que faltaram`);
+          continue;
+        }
+        state.complete = true;
+        break;
+      }
       if (pages % settings.burstPages === 0) {
         await sleep(rand(settings.burstPauseMin, settings.burstPauseMax) * 1000, `Pausa longa de segurança (${state.users.length} perfis)`);
       } else {
@@ -229,7 +252,8 @@
     state.fetchedAt = Date.now();
     // Cronológica de verdade só quando é a SUA lista "seguindo" e o Instagram aceitou o parâmetro de ordem.
     state.chronological = isSelf && type === 'following' && useOrder;
-    state.diff = await recordSnapshot(key, state);
+    state.coverage = total ? state.users.length / total : 1;
+    if (record) state.diff = await recordSnapshot(key, state);
     await store.set(key, state);
     return state;
   }
@@ -243,30 +267,64 @@
     const hk = 'hist:' + key.slice(5);
     const h = (await store.get(hk)) || { firstSeen: {}, snapshots: [], lastPks: null };
     const now = state.fetchedAt;
-    const baseline = !h.lastPks;
     const prev = new Set(h.lastPks || []);
+    // Calibração: enquanto a soma das buscas não cobrir ~98% do total do perfil, perfis que
+    // aparecem pela primeira vez são tratados como "já estavam lá" (a busca anterior os pulou),
+    // e não como follows novos. Só acontece em listas de terceiros com paginação instável.
+    const prevSnapC = h.snapshots[h.snapshots.length - 1];
+    const prevCumCoverage = prevSnapC?.total ? prev.size / prevSnapC.total : 1;
+    const baseline = !h.lastPks || (!h.calibrated && prevCumCoverage < COVERAGE_OK);
     const curr = new Set(state.users.map((u) => u.pk));
     const coverage = state.total ? state.users.length / state.total : 1;
-    const added = [], removed = [];
-    for (const u of state.users) {
-      if (!(u.pk in h.firstSeen)) h.firstSeen[u.pk] = baseline ? 0 : now; // 0 = já estava na 1ª busca
-      if (!baseline && !prev.has(u.pk)) added.push(u.pk);
-    }
-    if (!baseline) for (const pk of prev) if (!curr.has(pk)) removed.push(pk);
+    const complete = coverage >= COVERAGE_OK || (state.passGain || []).slice(-1)[0] === 0;
     const prevSnap = h.snapshots[h.snapshots.length - 1] || null;
+    h.lastUsers = h.lastUsers || {};
     h.removedInfo = h.removedInfo || {};
-    for (const pk of removed) if (h.lastUsers?.[pk]) h.removedInfo[pk] = { ...h.lastUsers[pk], removedAt: now };
-    h.lastUsers = Object.fromEntries(state.users.map((u) => [u.pk, { username: u.username, fullName: u.fullName }]));
-    h.lastPks = [...curr];
-    h.snapshots.push({ at: now, count: curr.size, total: state.total, coverage });
+    h.missing = h.missing || {}; // pk -> nº de buscas seguidas em que não apareceu
+
+    // "Novo" = nunca visto em NENHUMA busca anterior (não só na última) — evita que um perfil
+    // pulado numa busca apareça como "novo follow" na seguinte.
+    const added = [];
+    for (const u of state.users) {
+      if (!(u.pk in h.firstSeen)) {
+        h.firstSeen[u.pk] = baseline ? 0 : now;
+        if (!baseline) added.push(u.pk);
+      }
+      delete h.missing[u.pk];
+    }
+    // "Saiu" só é confirmado quando o perfil some em 2 buscas seguidas (ou em 1 busca completa
+    // em que o total também caiu). Até lá continua contando como "na lista".
+    const removed = [];
+    const countDropped = prevSnap?.total != null && state.total != null && state.total < prevSnap.total;
+    const keep = new Set(curr);
+    if (baseline) {
+      for (const pk of prev) keep.add(pk); // calibrando: soma as buscas, não remove ninguém
+    } else {
+      for (const pk of prev) {
+        if (curr.has(pk)) continue;
+        h.missing[pk] = (h.missing[pk] || 0) + 1;
+        if (h.missing[pk] >= 2 || (complete && countDropped)) {
+          removed.push(pk);
+          delete h.missing[pk];
+          if (h.lastUsers[pk]) h.removedInfo[pk] = { ...h.lastUsers[pk], removedAt: now };
+        } else keep.add(pk);
+      }
+    }
+    for (const u of state.users) h.lastUsers[u.pk] = { username: u.username, fullName: u.fullName };
+    for (const pk of Object.keys(h.lastUsers)) if (!keep.has(pk)) delete h.lastUsers[pk];
+    h.lastPks = [...keep];
+    const cumCoverage = state.total ? keep.size / state.total : 1;
+    if (cumCoverage >= COVERAGE_OK || (state.passGain || []).slice(-1)[0] === 0) h.calibrated = true;
+    h.snapshots.push({ at: now, count: curr.size, total: state.total, coverage, passes: state.pass || 1 });
     h.snapshots = h.snapshots.slice(-50);
     await store.set(hk, h);
     for (const u of state.users) u.firstSeen = h.firstSeen[u.pk];
     return {
       baseline, since: prevSnap?.at || null, added, removed,
       removedUsers: removed.map((pk) => ({ pk, ...(h.removedInfo[pk] || { username: '?' }) })),
-      reliable: coverage >= 0.97 && (!prevSnap || prevSnap.coverage >= 0.97),
-      coverage,
+      reliable: complete && (!prevSnap || prevSnap.coverage >= COVERAGE_OK),
+      coverage, pending: Object.keys(h.missing).length,
+      calibrated: !!h.calibrated, cumCoverage,
     };
   }
 
@@ -293,7 +351,7 @@
       throw new IgError(`@${username} é privada e você não a segue.`, 'private');
     }
     const changed = x.lastCount != null && p.followingCount !== x.lastCount;
-    const stale = !x.lastFull || now - x.lastFull > settings.fullRecheckDays * 86400e3;
+    const stale = !x.lastFull || !x.calibrated || now - x.lastFull > settings.fullRecheckDays * 86400e3;
     const events = [];
     if (forceFull || changed || stale) {
       setStatus(`Monitor: @${username} ${changed ? `mudou de ${x.lastCount} para ${p.followingCount} seguindo — ` : ''}baixando a lista…`);
@@ -303,24 +361,34 @@
         // Janela: da última vez em que o contador ainda estava igual até agora.
         const from = Math.max(d.since || 0, changed ? x.lastCheck || 0 : 0) || d.since;
         const byPk = Object.fromEntries(st.users.map((u) => [u.pk, u]));
+        // Coerência: novos follows ≈ variação do contador + unfollows confirmados.
+        // Se vierem muito mais "novos" que isso, provavelmente são perfis que a busca anterior pulou.
+        const delta = x.lastCount != null ? p.followingCount - x.lastCount : 0;
+        const expected = Math.max(0, delta + d.removed.length + d.pending);
+        const plausible = d.added.length <= expected + 1;
         for (const pk of d.added) {
           const u = byPk[pk];
-          events.push({ kind: 'follow', who: username, pk, username: u.username, fullName: u.fullName, pic: u.pic, from, to: now, unsure: !d.reliable });
+          events.push({ kind: 'follow', who: username, pk, username: u.username, fullName: u.fullName, pic: u.pic, from, to: now, unsure: !d.reliable || !plausible });
         }
         for (const u of d.removedUsers) {
           events.push({ kind: 'unfollow', who: username, pk: u.pk, username: u.username, fullName: u.fullName || '', pic: '', from, to: now, unsure: !d.reliable });
         }
       }
       x.lastFull = now;
+      x.calibrated = d.calibrated;
+      x.cumCoverage = d.cumCoverage;
     }
     const w2 = await getWatch(); // pode ter mudado durante a busca
     if (!w2[username]) return events;
-    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: p.followingCount, id: p.id });
+    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: p.followingCount, id: p.id, calibrated: x.calibrated, cumCoverage: x.cumCoverage });
     w2[username].events = [...events, ...(w2[username].events || [])].slice(0, 500);
     w2[username].unseen = (w2[username].unseen || 0) + events.filter((e) => e.kind === 'follow').length;
     await store.set('watch', w2);
     return events;
   }
+
+  // Contas em calibração são reverificadas mais cedo (no máx. a cada 2 h).
+  const intervalFor = (x) => (x.calibrated ? settings.monitorHours : Math.min(2, settings.monitorHours)) * 3600e3 * (x.jitter || 1);
 
   async function acquireLock() {
     const l = await store.get('monitorLock');
@@ -336,7 +404,7 @@
     if (job || !myId()) return;
     const w = await getWatch();
     const now = Date.now();
-    const due = only ? [only] : Object.keys(w).filter((u) => !w[u].lastCheck || now - w[u].lastCheck >= settings.monitorHours * 3600e3 * (w[u].jitter || 1));
+    const due = only ? [only] : Object.keys(w).filter((u) => !w[u].lastCheck || now - w[u].lastCheck >= intervalFor(w[u]));
     if (!due.length || !(await acquireLock())) return;
     job = { cancelled: false };
     setBusy(true);
@@ -680,8 +748,9 @@
     const names = Object.keys(w);
     $('wlist').innerHTML = names.length ? names.map((u) => {
       const x = w[u];
-      const next = x.lastCheck ? x.lastCheck + settings.monitorHours * 3600e3 * (x.jitter || 1) : Date.now();
-      return `<div class="w"><div><b>@${esc(u)}</b>${x.unseen ? ` <span class="new">${x.unseen} novo(s)</span>` : ''}
+      const next = x.lastCheck ? x.lastCheck + intervalFor(x) : Date.now();
+      const calib = x.lastFull && !x.calibrated ? ` <span class="new" style="background:#fff4e0;color:#a05a00">calibrando ${Math.floor(100 * (x.cumCoverage || 0))}%</span>` : '';
+      return `<div class="w"><div><b>@${esc(u)}</b>${calib}${x.unseen ? ` <span class="new">${x.unseen} novo(s)</span>` : ''}
         <small>${x.lastCount != null ? x.lastCount + ' seguindo · ' : ''}${x.lastCheck ? 'verificada ' + fmtDT(x.lastCheck) + ' · próxima ~' + fmtDT(next) : 'aguardando 1ª verificação'}</small>
         ${x.lastError ? `<small class="er">${esc(x.lastError)}</small>` : ''}</div>
         <button data-act="now" data-u="${esc(u)}">Verificar agora</button><button data-act="rm" data-u="${esc(u)}">Remover</button></div>`;
@@ -691,7 +760,7 @@
     $('feed').innerHTML = evs.length ? evs.slice(0, 300).map((e) => `<div class="ev ${e.kind === 'unfollow' ? 'un' : ''}">
         <a href="https://www.instagram.com/${esc(e.who)}/" target="_blank">@${esc(e.who)}</a> ${e.kind === 'follow' ? 'seguiu' : 'deixou de seguir'}
         <a href="https://www.instagram.com/${esc(e.username)}/" target="_blank">@${esc(e.username)}</a>
-        <small>entre ${fmtDT(e.from)} e ${fmtDT(e.to)}${e.unsure ? ' · incerto (lista veio incompleta)' : ''}</small></div>`).join('')
+        <small>entre ${fmtDT(e.from)} e ${fmtDT(e.to)}${e.unsure ? ' · <b>incerto</b>: pode ser alguém que a busca anterior não trouxe' : ''}</small></div>`).join('')
       : '<div class="muted">Nada ainda. A 1ª verificação de cada conta só guarda a referência; os follows aparecem a partir da próxima mudança.</div>';
     const unseen = names.reduce((n, u) => n + (w[u].unseen || 0), 0);
     $('unseen').style.display = unseen ? '' : 'none';
