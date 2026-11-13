@@ -74,24 +74,30 @@
   }
 
   // ---------- API do Instagram ----------
-  async function igGet(path) {
+  async function igGet(path, { html = false, referrer } = {}) {
     if (job?.cancelled) throw new IgError('Interrompido.', 'cancel');
     if (!myId()) throw new IgError('Você não está logado no Instagram nesta aba.', 'auth');
     await countRequest();
     let res, text;
     try {
-      res = await fetch(location.origin + path, {
-        credentials: 'include',
-        headers: {
-          'X-IG-App-ID': APP_ID,
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': cookie('csrftoken'),
-          Accept: 'application/json',
-        },
-      });
+      const headers = html ? { Accept: 'text/html' } : {
+        'X-IG-App-ID': APP_ID,
+        'X-ASBD-ID': '198387',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': cookie('csrftoken'),
+        Accept: 'application/json',
+      };
+      const claim = sessionStorage.getItem('www-claim-v2');
+      if (!html && claim) headers['X-IG-WWW-Claim'] = claim;
+      res = await fetch(location.origin + path, { credentials: 'include', headers, ...(referrer ? { referrer } : {}) });
       text = await res.text();
     } catch (e) {
       throw new IgError('Falha de rede: ' + e.message, 'net');
+    }
+    if (html) {
+      if (res.status === 429) throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', 429);
+      if (!res.ok) throw new IgError(`Erro ${res.status} na página`, res.status === 404 ? 'notfound' : 'http', res.status);
+      return text;
     }
     let data = null;
     try { data = JSON.parse(text); } catch { /* resposta não-JSON */ }
@@ -106,42 +112,141 @@
     if (res.status === 429 || /wait a few minutes|try again later|aguarde|tente novamente/i.test(msg)) {
       throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', res.status);
     }
-    if (res.status === 404) throw new IgError('Perfil não encontrado.', 'notfound', 404);
+    if (res.status === 404) throw new IgError(`O Instagram respondeu 404 em ${path.split('?')[0]}`, 'notfound', 404);
     if (!res.ok || !data || data.status === 'fail') {
       throw new IgError(`Erro ${res.status}: ${msg || (text || '').slice(0, 120)}`, 'http', res.status);
     }
     return data;
   }
 
+  // ---------- descobrir id e contadores de um @ ----------
+  // O Instagram desligou /web/search/topsearch/ (404 desde out/2026) e o web_profile_info passou a
+  // falhar para algumas contas (400/404/429). Por isso tentamos, em ordem:
+  //  1) web_profile_info  2) id/contadores lidos da página do perfil  3) feed por username  4) users/{id}/info
+  const reEsc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  function parseCount(t) {
+    if (!t) return null;
+    t = t.trim().toLowerCase().replace(/\s/g, '');
+    const m = t.match(/^([\d.,]+)(k|m|mil|mi)?$/);
+    if (!m) return null;
+    let n = m[1];
+    if (m[2]) return Math.round(parseFloat(n.replace(',', '.')) * (m[2].startsWith('m') && m[2] !== 'mil' ? 1e6 : 1e3));
+    return parseInt(n.replace(/[.,]/g, ''), 10);
+  }
+
+  function parseProfileHtml(html, username) {
+    const me = myId();
+    const u = reEsc(username);
+    const out = {};
+    const idPatterns = [
+      new RegExp(`"username":"${u}"[^{}]{0,600}?"(?:pk|id|pk_id)":"(\\d+)"`, 'i'),
+      new RegExp(`"(?:pk|id|pk_id)":"(\\d+)"[^{}]{0,600}?"username":"${u}"`, 'i'),
+      /"profilePage_(\d+)"/,
+      /"profile_id":"(\d+)"/,
+      /"target_id":"(\d+)"/,
+      /instagram:\/\/user\?id=(\d+)/,
+    ];
+    for (const re of idPatterns) {
+      const m = html.match(re);
+      if (m && m[1] !== me) { out.id = m[1]; break; }
+    }
+    const priv = html.match(new RegExp(`"username":"${u}"[^{}]{0,800}?"is_private":(true|false)`, 'i')) ||
+                 html.match(new RegExp(`"is_private":(true|false)[^{}]{0,800}?"username":"${u}"`, 'i'));
+    if (priv) out.isPrivate = priv[1] === 'true';
+    const fol = html.match(/"following_count":(\d+)/) || html.match(/"edge_follow":\{"count":(\d+)\}/);
+    if (fol) out.followingCount = +fol[1];
+    if (out.followingCount == null) {
+      // <meta name="description" content="123 Followers, 456 Following, ..."> (ou em português)
+      const meta = (html.match(/<meta[^>]+(?:name="description"|property="og:description")[^>]+content="([^"]+)"/i) || [])[1] || '';
+      const fm = meta.match(/([\d.,]+\s?(?:k|m|mil|mi)?)\s+(?:following|seguindo)/i);
+      if (fm) out.followingCount = parseCount(fm[1]);
+      const fr = meta.match(/([\d.,]+\s?(?:k|m|mil|mi)?)\s+(?:followers|seguidores)/i);
+      if (fr) out.followersCount = parseCount(fr[1]);
+    }
+    return out;
+  }
+
   async function getProfile(username, force = false) {
     const key = 'profile:' + username;
     const c = await store.get(key);
     if (c && !force && Date.now() - c.at < settings.cacheHours * 3600e3) return c;
-    let u = null;
-    try {
-      const d = await igGet(`/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`);
-      u = d?.data?.user;
-    } catch (e) {
-      if (e.kind !== 'notfound' && e.kind !== 'http') throw e;
-    }
-    if (!u) {
-      // Plano B: busca do site, que também traz o id numérico.
-      const d = await igGet(`/web/search/topsearch/?context=blended&query=${encodeURIComponent(username)}&include_reel=false`);
-      const hit = (d.users || []).map((x) => x.user).find((x) => x?.username?.toLowerCase() === username);
-      if (!hit) throw new IgError(`Perfil @${username} não encontrado.`, 'notfound');
-      u = { id: hit.pk || hit.pk_id, username: hit.username, full_name: hit.full_name, is_private: hit.is_private,
-            followed_by_viewer: hit.friendship_status?.following ?? !hit.is_private };
-    }
-    const p = {
-      at: Date.now(),
-      id: String(u.id),
-      username: u.username,
-      fullName: u.full_name || '',
-      isPrivate: !!u.is_private,
-      followedByViewer: !!u.followed_by_viewer,
-      followingCount: u.edge_follow?.count ?? null,
-      followersCount: u.edge_followed_by?.count ?? null,
+    const knownId = (await store.get('uid:' + username)) || c?.id || null; // o id de uma conta não muda
+    const p = { at: Date.now(), id: knownId, username, fullName: c?.fullName || '', isPrivate: null,
+                followedByViewer: null, followingCount: null, followersCount: null, via: [] };
+    const tries = [];
+    let sawRate = false;
+    const attempt = async (name, fn) => {
+      try { await fn(); tries.push(`${name}: ok`); }
+      catch (e) {
+        if (['cancel', 'auth', 'checkpoint', 'cap'].includes(e.kind)) throw e;
+        if (e.kind === 'rate') sawRate = true;
+        tries.push(`${name}: ${e.status || e.kind}`);
+      }
     };
+    const haveAll = () => p.id && p.followingCount != null;
+
+    await attempt('web_profile_info', async () => {
+      const d = await igGet(`/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`, { referrer: `${location.origin}/${username}/` });
+      const u = d?.data?.user;
+      if (!u) throw new IgError('vazio', 'notfound', 'vazio');
+      Object.assign(p, {
+        id: String(u.id), username: u.username, fullName: u.full_name || '', isPrivate: !!u.is_private,
+        followedByViewer: !!u.followed_by_viewer, followingCount: u.edge_follow?.count ?? null,
+        followersCount: u.edge_followed_by?.count ?? null,
+      });
+      p.via.push('web_profile_info');
+    });
+
+    if (!haveAll()) {
+      await attempt('página do perfil', async () => {
+        await sleep(rand(1, 2.5) * 1000);
+        const html = await igGet(`/${encodeURIComponent(username)}/`, { html: true });
+        const r = parseProfileHtml(html, username);
+        if (!r.id && r.followingCount == null) throw new IgError('sem dados', 'notfound', 'sem dados');
+        if (!p.id && r.id) p.id = r.id;
+        if (p.isPrivate == null && r.isPrivate != null) p.isPrivate = r.isPrivate;
+        if (p.followingCount == null && r.followingCount != null) p.followingCount = r.followingCount;
+        if (p.followersCount == null && r.followersCount != null) p.followersCount = r.followersCount;
+        p.via.push('página');
+      });
+    }
+
+    if (!p.id) {
+      await attempt('feed', async () => {
+        await sleep(rand(1, 2.5) * 1000);
+        const d = await igGet(`/api/v1/feed/user/${encodeURIComponent(username)}/username/?count=1`);
+        const u = d?.user || d?.items?.[0]?.user || d?.items?.[0]?.owner;
+        if (!u) throw new IgError('sem usuário', 'notfound', 'sem posts');
+        p.id = String(u.pk ?? u.pk_id ?? u.id);
+        if (p.isPrivate == null && u.is_private != null) p.isPrivate = !!u.is_private;
+        p.via.push('feed');
+      });
+    }
+
+    if (p.id && p.followingCount == null) {
+      await attempt('users/info', async () => {
+        await sleep(rand(1, 2.5) * 1000);
+        const d = await igGet(`/api/v1/users/${p.id}/info/`);
+        const u = d?.user;
+        if (!u) throw new IgError('vazio', 'notfound', 'vazio');
+        p.followingCount = u.following_count ?? null;
+        p.followersCount = u.follower_count ?? p.followersCount;
+        if (p.isPrivate == null) p.isPrivate = !!u.is_private;
+        if (!p.fullName) p.fullName = u.full_name || '';
+        p.via.push('users/info');
+      });
+    }
+
+    if (!p.id) {
+      if (sawRate) throw new IgError('Instagram pediu para esperar (limite de requisições).', 'rate', 429);
+      throw new IgError(`Não consegui achar @${username}. Confira se o @ está certo. Detalhes: ${tries.join(' · ')}`, 'notfound');
+    }
+    if (p.isPrivate == null) p.isPrivate = false;
+    // Sem web_profile_info não sabemos se você segue: deixamos tentar e o Instagram responde.
+    if (p.followedByViewer == null) p.followedByViewer = true;
+    p.diag = tries.join(' · ');
+    await store.set('uid:' + username, p.id);
     await store.set(key, p);
     return p;
   }
@@ -350,8 +455,11 @@
     if (p.isPrivate && !p.followedByViewer && p.id !== myId()) {
       throw new IgError(`@${username} é privada e você não a segue.`, 'private');
     }
-    const changed = x.lastCount != null && p.followingCount !== x.lastCount;
-    const stale = !x.lastFull || !x.calibrated || now - x.lastFull > settings.fullRecheckDays * 86400e3;
+    const countKnown = p.followingCount != null;
+    const changed = countKnown && x.lastCount != null && p.followingCount !== x.lastCount;
+    // Sem contador (o Instagram não entregou), rebaixa a lista no máximo 1x por dia.
+    const recheckMs = countKnown ? settings.fullRecheckDays * 86400e3 : 24 * 3600e3;
+    const stale = !x.lastFull || !x.calibrated || now - x.lastFull > recheckMs;
     const events = [];
     if (forceFull || changed || stale) {
       setStatus(`Monitor: @${username} ${changed ? `mudou de ${x.lastCount} para ${p.followingCount} seguindo — ` : ''}baixando a lista…`);
@@ -363,8 +471,8 @@
         const byPk = Object.fromEntries(st.users.map((u) => [u.pk, u]));
         // Coerência: novos follows ≈ variação do contador + unfollows confirmados.
         // Se vierem muito mais "novos" que isso, provavelmente são perfis que a busca anterior pulou.
-        const delta = x.lastCount != null ? p.followingCount - x.lastCount : 0;
-        const expected = Math.max(0, delta + d.removed.length + d.pending);
+        const delta = countKnown && x.lastCount != null ? p.followingCount - x.lastCount : null;
+        const expected = delta == null ? Infinity : Math.max(0, delta + d.removed.length + d.pending);
         const plausible = d.added.length <= expected + 1;
         for (const pk of d.added) {
           const u = byPk[pk];
@@ -380,7 +488,7 @@
     }
     const w2 = await getWatch(); // pode ter mudado durante a busca
     if (!w2[username]) return events;
-    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: p.followingCount, id: p.id, calibrated: x.calibrated, cumCoverage: x.cumCoverage });
+    Object.assign(w2[username], { lastCheck: now, lastFull: x.lastFull, lastCount: countKnown ? p.followingCount : x.lastCount, id: p.id, calibrated: x.calibrated, cumCoverage: x.cumCoverage, via: p.diag });
     w2[username].events = [...events, ...(w2[username].events || [])].slice(0, 500);
     w2[username].unseen = (w2[username].unseen || 0) + events.filter((e) => e.kind === 'follow').length;
     await store.set('watch', w2);
